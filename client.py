@@ -338,7 +338,9 @@ import customtkinter as ctk
 import customtkinter as ctk
 import os
 from PIL import ImageTk
+import datetime
 #from tkinter import *
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -413,12 +415,49 @@ class RegisterPage(ctk.CTkFrame):
         email_label.pack()
         email_entry = ctk.CTkEntry(self)
         email_entry.pack()
+        
+        
+        age_label = ctk.CTkLabel(self, text="Age:")
+        age_label.pack()
+        age_entry = ctk.CTkEntry(self)
+        age_entry.pack()
 
-        register_button = ctk.CTkButton(self, text="Register", command=lambda: print("Registered!"))
+        gender_label = ctk.CTkLabel(self, text="Gender:")
+        gender_label.pack()
+        gender_entry = ctk.CTkEntry(self)
+        gender_entry.pack()
+
+        country_label = ctk.CTkLabel(self, text="Country:")
+        country_label.pack()
+        country_entry = ctk.CTkEntry(self)
+        country_entry.pack()
+
+        occupation_label = ctk.CTkLabel(self, text="Occupation:")
+        occupation_label.pack()
+        occupation_entry = ctk.CTkEntry(self)
+        occupation_entry.pack()
+
+        description_label = ctk.CTkLabel(self, text="Description:")
+        description_label.pack()
+        description_entry = ctk.CTkTextbox(self)
+        description_entry.pack()
+
+        register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register(name_entry.get(), password_entry.get(), email_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), datetime.datetime.now(), description_entry.get("1.0", "end-1c")))
         register_button.pack(pady=10)
         
         go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage))
         go_back_button.pack(pady=10)
+    
+    def user_register(self, name, password, email, age, gender, country, occupation, date_creation, description):
+        send_with_size(client_socket, f"REGUSR|{name}|{password}|{email}|{age}|{gender}|{country}|{occupation}|{date_creation}|{description}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "REGUSR":
+            pass
+        
+        
 
 
 class LoginPage(ctk.CTkFrame):
@@ -437,12 +476,20 @@ class LoginPage(ctk.CTkFrame):
         password_label.pack()
         password_entry = ctk.CTkEntry(self, show="*")
         password_entry.pack()
+        
+        email_label = ctk.CTkLabel(self, text="Email:")
+        email_label.pack()
+        email_entry = ctk.CTkEntry(self)
+        email_entry.pack()
 
-        login_button = ctk.CTkButton(self, text="Login", command=lambda: print("Logged in!"))
+        login_button = ctk.CTkButton(self, text="Login", command=lambda: self.user_login(name_entry.get(), password_entry.get(), email_entry.get()))
         login_button.pack(pady=10)
         
         go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage))
         go_back_button.pack(pady=10)
+    
+    def user_login(self, name, password, email):
+        send_with_size(client_socket, f"LOGUSR|{name}|{password}|{email}")
 
 
 class HomePage(ctk.CTkFrame):
@@ -536,5 +583,7 @@ class Message(ctk.CTkFrame):
 
 
 if __name__ == "__main__":
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(('localhost', 12345))
     app = App()
     app.mainloop()

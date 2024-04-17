@@ -2,7 +2,7 @@ import sqlite3
 
 import pickle
 import hash_handler
-
+import classes
 
 # https://docs.python.org/2/library/sqlite3.html
 # https://www.youtube.com/watch?v=U7nfe4adDw8
@@ -42,17 +42,22 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
                 password TEXT,
                 salt TEXT,
                 mail TEXT UNIQUE,
-                money INTEGER
+                age INTEGER,
+                gender TEXT,
+                country TEXT,
+                occupation TEXT,
+                date_creation TEXT,
+                description TEXT
             )
         ''')
 
         self.commit()
 
-    def insert_user(self, user, salt):
+    def insert_user(self, user: classes.User, salt):
         self.cursor.execute('''
-            INSERT INTO Users (username, password, salt, mail, money)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (user.username, user.password, salt, user.mail, user.money))
+            INSERT INTO Users (username, password, salt, mail, age, gender, country, occupation, date_creation, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user.username, user.password, salt, user.mail, user.age, user.gender, user.country, user.occupation, user.date_creation, user.description))
         self.commit()
 
     def print_table(self, table_name):
@@ -105,17 +110,6 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
         self.cursor.execute(f'''UPDATE Users
                             SET password = '{hashed_password}', salt = '{salt}'
                             WHERE username = '{username}' ''')
-
-
-    def deposit_withdraw_money(self, user_id, amount):
-        current_money = self.get_specific(user_id, "money")
-
-        self.cursor.execute(f'''
-                    UPDATE Users
-                    SET money = '{current_money + amount}'
-                    WHERE user_id = {user_id}
-                ''')
-        self.commit()
 
     
     def registeration_checks(self, username, mail):

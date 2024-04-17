@@ -1,20 +1,19 @@
 class User:
-    def __init__(self, name: str, password: str, mail: str, age: int, birthdate, gender: str,
-                 description: str, country, workplace, date_creation):
-        self.name = name
+    def __init__(self, username: str, password: str, mail: str, age: int, gender: str, 
+                 country: str, occupation: str, date_creation: str, description: str):
+        self.username = username
         self.password = password
         self.mail = mail
         self.age = age
-        self.birthdate = birthdate
         self.gender = gender
-        self.description = description
         self.country = country
-        self.workplace = workplace
+        self.occupation = occupation
         self.date_creation = date_creation
+        self.description = description
 
 
 class Message:
-    def __init__(self, content: str, sender: User, date_published: str, conversation_id):
+    def __init__(self, content: str, sender: User, date_published: str, conversation_id: int):
         self.content = content
         self.seder = sender
         self.date_published = date_published
@@ -22,7 +21,7 @@ class Message:
 
 
 class Conversation:
-    def __init__(self, initialize_date, title, restrictions, message_lst=None):
+    def __init__(self, id: int, initialize_date: str, title: str, restrictions: list[str], message_lst: list[Message]=None):
         if message_lst is None:
             message_lst = []
         else:
