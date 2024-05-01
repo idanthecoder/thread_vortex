@@ -386,17 +386,27 @@ class App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
-        self.frames = {}
-        for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
-            frame = F(self.container, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        #self.frames = {}
+        #for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
+        #    frame = F(self.container, self)
+        #    self.frames[F] = frame
+        #    frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_page(HomePage_Unconnected)
+        #self.show_page(HomePage_Unconnected)
+        self.frame = HomePage_Unconnected(self.container, self)
+        self.frame.grid(row=0, column=0, sticky="nsew")
 
     def show_page(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
+        #frame = self.frames[cont]
+        #frame.tkraise()
+        
+        # i need to somehow use forget on the current used class frame and grid/pack the new class frame i want to use
+        self.frame.forget()
+        self.frame = cont(self.container, self)
+        self.frame.grid(row=0, column=0, sticky="nsew")
+        
+        
+        
 
 #class HomePage(ctk.CTkFrame):
 #    def __init__(self, parent, controller):
