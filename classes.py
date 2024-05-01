@@ -10,6 +10,14 @@ class User:
         self.occupation = occupation
         self.date_creation = date_creation
         self.description = description
+    
+    def edit_profile(self, password: str, age: int, gender: str, country: str, occupation: str, description: str):
+        self.password = password
+        self.age = age
+        self.gender = gender
+        self.country = country
+        self.occupation = occupation
+        self.description = description
 
 
 class Message:

@@ -339,8 +339,37 @@ import customtkinter as ctk
 import os
 from PIL import ImageTk
 import datetime
+import classes
+from tkinter import messagebox
 #from tkinter import *
 
+
+#class App(ctk.CTk):
+#    def __init__(self):
+#        super().__init__()
+#        self.title("ThreadVortex")
+#        self.geometry("800x600")
+#        
+#        self.iconpath = ImageTk.PhotoImage(file=os.path.join("assets","Thread Vortex no text logo.png"))
+#        self.wm_iconbitmap()
+#        self.iconphoto(False, self.iconpath)
+#        
+#        self.container = ctk.CTkFrame(self)
+#        self.container.pack(side="top", fill="both", expand=True)
+#        self.container.grid_rowconfigure(0, weight=1)
+#        self.container.grid_columnconfigure(0, weight=1)
+#
+#        self.frames = {}
+#        for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
+#            frame = F(self.container, self)
+#            self.frames[F] = frame
+#            frame.grid(row=0, column=0, sticky="nsew")
+#
+#        self.show_page(HomePage_Unconnected)
+#
+#    def show_page(self, cont):
+#        frame = self.frames[cont]
+#        frame.tkraise()
 
 class App(ctk.CTk):
     def __init__(self):
@@ -358,12 +387,12 @@ class App(ctk.CTk):
         self.container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (HomePage, RegisterPage, LoginPage):
+        for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
             frame = F(self.container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_page(HomePage)
+        self.show_page(HomePage_Unconnected)
 
     def show_page(self, cont):
         frame = self.frames[cont]
@@ -442,20 +471,28 @@ class RegisterPage(ctk.CTkFrame):
         description_entry = ctk.CTkTextbox(self)
         description_entry.pack()
 
-        register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register(name_entry.get(), password_entry.get(), email_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), datetime.datetime.now(), description_entry.get("1.0", "end-1c")))
+        register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(controller, name_entry.get(), password_entry.get(), email_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), datetime.datetime.now(), description_entry.get("1.0", "end-1c")))
         register_button.pack(pady=10)
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage))
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Unconnected))
         go_back_button.pack(pady=10)
     
-    def user_register(self, name, password, email, age, gender, country, occupation, date_creation, description):
-        send_with_size(client_socket, f"REGUSR|{name}|{password}|{email}|{age}|{gender}|{country}|{occupation}|{date_creation}|{description}")
+    def user_register_h(self, controller, username, password, mail, age, gender, country, occupation, date_creation, description):
+        global user_profile
+        
+        user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
+        self.user_register(controller, user_profile)
+    
+    def user_register(self, controller, user_profile: classes.User):
+        send_with_size(client_socket, f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
         
         if data[0] == "REGUSR":
-            pass
+            if data[1] == "new_user":
+                controller.show_page(HomePage_Connected)
+                
         
         
 
@@ -482,17 +519,30 @@ class LoginPage(ctk.CTkFrame):
         email_entry = ctk.CTkEntry(self)
         email_entry.pack()
 
-        login_button = ctk.CTkButton(self, text="Login", command=lambda: self.user_login(name_entry.get(), password_entry.get(), email_entry.get()))
+        login_button = ctk.CTkButton(self, text="Login", command=lambda: self.user_login(controller, name_entry.get(), password_entry.get(), email_entry.get()))
         login_button.pack(pady=10)
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage))
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Unconnected))
         go_back_button.pack(pady=10)
     
-    def user_login(self, name, password, email):
+    def user_login(self, controller, name, password, email):
+        global user_profile
         send_with_size(client_socket, f"LOGUSR|{name}|{password}|{email}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "LOGUSR":
+            if data[1] == "correct_identification":
+                user_profile = classes.User(data[2], None, data[3], int(data[4]), data[5], data[6], data[7], data[8], data[9])
+                controller.show_page(HomePage_Connected)
+        
+        
 
 
-class HomePage(ctk.CTkFrame):
+
+
+class HomePage_Unconnected(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         # Top bar with logo, search bar, and login/register buttons
@@ -527,6 +577,115 @@ class HomePage(ctk.CTkFrame):
         ]
         for message in self.messages:
             Message(self.content_area, message["user"], message["date"], message["content"])
+
+class HomePage_Connected(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        # Top bar with logo, search bar, and login/register buttons
+        self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
+        self.top_bar.pack(fill=ctk.X)
+        self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
+        self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
+        self.search_bar = ctk.CTkEntry(self.top_bar)
+        self.search_bar.pack(side=ctk.LEFT, padx=1)
+        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100)
+        self.search_button.pack(side=ctk.LEFT)
+        self.disconnect_button = ctk.CTkButton(self.top_bar, text="Disconnect", fg_color="white", text_color="black", hover_color="cyan", command=lambda: self.disconnect(controller))
+        self.disconnect_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
+        self.edit_profile_button = ctk.CTkButton(self.top_bar, text="Edit Profile", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(EditProfilePage))
+        self.edit_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
+
+        # Sidebar with topics
+        self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
+        self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
+        self.topics = ["Gaming", "Cyber", "Tech", "Fashion", "Sports", "History", "Politics", "Physics"]
+        for topic in self.topics:
+            ctk.CTkButton(self.sidebar, text=topic, fg_color="white", text_color="black", hover_color="cyan", width=100).pack(pady=2)
+
+        # Add messages here
+        # Main content area with messages
+        self.content_area = ctk.CTkScrollableFrame(self)
+        self.content_area.pack(fill=ctk.BOTH, expand=True)
+        self.messages = [
+            {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
+            {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
+            # Add more messages here...
+        ]
+        for message in self.messages:
+            Message(self.content_area, message["user"], message["date"], message["content"])
+    
+    def disconnect(self, controller):
+        if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
+            controller.show_page(HomePage_Unconnected)
+
+class EditProfilePage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        global user_profile
+        super().__init__(parent)
+
+        label = ctk.CTkLabel(self, text="Edit Profile Page", font=("Helvetica", 16))
+        label.pack(pady=10, padx=10)
+
+        password_label = ctk.CTkLabel(self, text="Password:")
+        password_label.pack()
+        password_entry = ctk.CTkEntry(self, show="*")
+        password_entry.insert(0, user_profile.password)
+        password_entry.pack()
+        
+        age_label = ctk.CTkLabel(self, text="Age:")
+        age_label.pack()
+        age_entry = ctk.CTkEntry(self)
+        age_entry.insert(0, user_profile.age)
+        age_entry.pack()
+
+        gender_label = ctk.CTkLabel(self, text="Gender:")
+        gender_label.pack()
+        gender_entry = ctk.CTkEntry(self)
+        gender_entry.insert(0, user_profile.gender)
+        gender_entry.pack()
+
+        country_label = ctk.CTkLabel(self, text="Country:")
+        country_label.pack()
+        country_entry = ctk.CTkEntry(self)
+        country_entry.insert(0, user_profile.country)
+        country_entry.pack()
+
+        occupation_label = ctk.CTkLabel(self, text="Occupation:")
+        occupation_label.pack()
+        occupation_entry = ctk.CTkEntry(self)
+        occupation_entry.insert(0, user_profile.occupation)
+        occupation_entry.pack()
+
+        description_label = ctk.CTkLabel(self, text="Description:")
+        description_label.pack()
+        description_entry = ctk.CTkTextbox(self)
+        description_entry.insert(0, user_profile.description)
+        description_entry.pack()
+
+        register_button = ctk.CTkButton(self, text="Commit changes", command=lambda: self.user_edit_profile_h(controller, password_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
+        register_button.pack(pady=10)
+        
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
+        go_back_button.pack(pady=10)
+    
+    def user_edit_profile_h(self, controller, password, age, gender, country, occupation, description):
+        global user_profile
+        
+        user_profile.edit_profile(password, age, gender, country, occupation, description)
+        self.user_edit_profile(controller, user_profile)
+    
+    def user_edit_profile(self, controller, user_profile: classes.User):
+        send_with_size(client_socket, f"EDTUSR|{user_profile.password}{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.description}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "EDTUSR":
+            if data[1] == "edited_profile":
+                messagebox.showinfo("Info", "User profile updated successfuly")
+                controller.show_page(HomePage_Connected)
+        
+
 
 #class App(ctk.CTk):
 #    def __init__(self, *args, **kwargs):
@@ -585,5 +744,6 @@ class Message(ctk.CTkFrame):
 if __name__ == "__main__":
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('localhost', 12345))
+    user_profile = None
     app = App()
     app.mainloop()

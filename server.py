@@ -74,9 +74,11 @@ class TCPServer:
                     user_data = users_db.enter_account(fields[0], fields[1], fields[2])
 
                     if user_data:
-                        to_send = f"LOGUSR|correct_identification|{user_data[0][1]}|{user_data[0][2]}|{user_data[0][3]}|{user_data[0][4]}"
+                        to_send = f"LOGUSR|correct_identification|{user_data[0][1]}|{user_data[0][3]}|{user_data[0][4]}|{user_data[0][5]}|{user_data[0][6]}|{user_data[0][7]}|{user_data[0][8]}|{user_data[0][9]}"
                     else:
                         to_send = f"LOGUSR|failed_identification"
+                elif command == "EDTUSR":
+                    pass
                 
                 
                 
