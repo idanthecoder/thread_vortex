@@ -78,7 +78,13 @@ class TCPServer:
                     else:
                         to_send = f"LOGUSR|failed_identification"
                 elif command == "EDTUSR":
-                    pass
+                    salt = hash_handler.gen_salt()
+                    pepper = hash_handler.get_global_pepper()
+                    password = hash_handler.hash_password(pepper + salt + fields[1])
+                    user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
+                    users_db.edit_user_data(user)
+                    to_send = "EDTUSR|edited_profile"
+                    users_db.print_table("Users")
                 
                 
                 

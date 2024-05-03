@@ -669,7 +669,7 @@ class EditProfilePage(ctk.CTkFrame):
         description_label = ctk.CTkLabel(self, text="Description:")
         description_label.pack()
         description_entry = ctk.CTkTextbox(self)
-        description_entry.insert(0, user_profile.description)
+        description_entry.insert('1.0', user_profile.description)
         description_entry.pack()
 
         register_button = ctk.CTkButton(self, text="Commit changes", command=lambda: self.user_edit_profile_h(controller, password_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
@@ -681,11 +681,11 @@ class EditProfilePage(ctk.CTkFrame):
     def user_edit_profile_h(self, controller, password, age, gender, country, occupation, description):
         global user_profile
         
-        user_profile.edit_profile(password, age, gender, country, occupation, description)
+        user_profile.edit_profile(password, int(age), gender, country, occupation, description)
         self.user_edit_profile(controller, user_profile)
     
     def user_edit_profile(self, controller, user_profile: classes.User):
-        send_with_size(client_socket, f"EDTUSR|{user_profile.password}{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.description}")
+        send_with_size(client_socket, f"EDTUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
