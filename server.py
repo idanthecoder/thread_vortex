@@ -71,17 +71,18 @@ class TCPServer:
                         elif register_status[0] == "mail_issue":
                             to_send = f"REGUSR|mail_taken"
                 elif command == "LOGUSR":
+                    users_db.print_table("Users")
                     user_data = users_db.enter_account(fields[0], fields[1], fields[2])
 
                     if user_data:
-                        to_send = f"LOGUSR|correct_identification|{user_data[0][1]}|{user_data[0][3]}|{user_data[0][4]}|{user_data[0][5]}|{user_data[0][6]}|{user_data[0][7]}|{user_data[0][8]}|{user_data[0][9]}"
+                        to_send = f"LOGUSR|correct_identification|{user_data[0][1]}|{user_data[0][4]}|{user_data[0][5]}|{user_data[0][6]}|{user_data[0][7]}|{user_data[0][8]}|{user_data[0][9]}|{user_data[0][10]}"
                     else:
                         to_send = f"LOGUSR|failed_identification"
                 elif command == "EDTUSR":
-                    salt = hash_handler.gen_salt()
-                    pepper = hash_handler.get_global_pepper()
-                    password = hash_handler.hash_password(pepper + salt + fields[1])
-                    user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
+                    #salt = hash_handler.gen_salt()
+                    #pepper = hash_handler.get_global_pepper()
+                    #password = hash_handler.hash_password(pepper + salt + fields[1])
+                    user = classes.User(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
                     users_db.edit_user_data(user)
                     to_send = "EDTUSR|edited_profile"
                     users_db.print_table("Users")

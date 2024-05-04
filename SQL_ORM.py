@@ -161,7 +161,8 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
     
     
     def edit_user_data(self, user: classes.User):
-        self.update_password(user.username, user.password)
+        if user.password != "":
+            self.update_password(user.username, user.password)
         self.cursor.execute(f'''UPDATE Users
                             SET age = '{user.age}', gender = '{user.gender}', country = '{user.country}', occupation = '{user.occupation}', date_creation = '{user.date_creation}', description = '{user.description}'
                             WHERE username = '{user.username}' ''')

@@ -337,7 +337,7 @@ import customtkinter as ctk
 #############
 import customtkinter as ctk
 import os
-from PIL import ImageTk
+from PIL import ImageTk, Image
 import datetime
 import classes
 from tkinter import messagebox
@@ -396,13 +396,30 @@ class App(ctk.CTk):
         self.frame = HomePage_Unconnected(self.container, self)
         self.frame.grid(row=0, column=0, sticky="nsew")
 
-    def show_page(self, cont):
+    #def show_page(self, cont, profile_username=None, connected=None): # possible args are parameters from certain classes. ViewProfile for exa,ple can have an arg of "Username"
+    #    #frame = self.frames[cont]
+    #    #frame.tkraise()
+    #    
+    #    # i need to somehow use forget on the current used class frame and grid/pack the new class frame i want to use
+    #    self.frame.forget()
+    #    if profile_username is not None:
+    #        if connected == "connected":
+    #            self.frame = cont(self.container, self, profile_username, "connected")
+    #        else:
+    #            self.frame = cont(self.container, self, profile_username, "unconnected")
+    #    else:
+    #        self.frame = cont(self.container, self)
+    #    self.frame.grid(row=0, column=0, sticky="nsew")
+    def show_page(self, cont, **kwargs): # possible kwargs currently are: profile_username=user_profile.username, connected_status="connected"
         #frame = self.frames[cont]
         #frame.tkraise()
         
-        # i need to somehow use forget on the current used class frame and grid/pack the new class frame i want to use
+        # use forget on the current used class frame and grid the new class frame i want to use
         self.frame.forget()
-        self.frame = cont(self.container, self)
+        if "profile_username" in kwargs and "connected_status" in kwargs:
+                self.frame = cont(self.container, self, kwargs.pop("profile_username"), kwargs.pop("connected_status"))
+        else:
+            self.frame = cont(self.container, self)
         self.frame.grid(row=0, column=0, sticky="nsew")
         
         
@@ -590,6 +607,7 @@ class HomePage_Unconnected(ctk.CTkFrame):
 
 class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
+        global user_profile
         super().__init__(parent)
         # Top bar with logo, search bar, and login/register buttons
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
@@ -604,6 +622,19 @@ class HomePage_Connected(ctk.CTkFrame):
         self.disconnect_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
         self.edit_profile_button = ctk.CTkButton(self.top_bar, text="Edit Profile", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(EditProfilePage))
         self.edit_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
+        
+        #profile info
+        view_profile_icon_image = Image.open(fp=os.path.join("assets","default user icon 2.png"))
+        #profile_icon_image.resize((40, 40), Image.LANCZOS)
+        #
+        #self.profile_icon_tkimage = ImageTk.PhotoImage(image=profile_icon_image)
+        
+        #self.view_profile_icon_path = ImageTk.PhotoImage(file=os.path.join("assets","default user icon 2.png"))
+        
+        self.view_profile_icon = ctk.CTkImage(light_image=view_profile_icon_image, size=(40, 40))
+        self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username, connected_status="connected"))
+        #self.view_profile_button.configure(width=40, height=40)
+        self.view_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
 
         # Sidebar with topics
         self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
@@ -639,7 +670,6 @@ class EditProfilePage(ctk.CTkFrame):
         password_label = ctk.CTkLabel(self, text="Password:")
         password_label.pack()
         password_entry = ctk.CTkEntry(self, show="*")
-        password_entry.insert(0, user_profile.password)
         password_entry.pack()
         
         age_label = ctk.CTkLabel(self, text="Age:")
@@ -681,11 +711,11 @@ class EditProfilePage(ctk.CTkFrame):
     def user_edit_profile_h(self, controller, password, age, gender, country, occupation, description):
         global user_profile
         
-        user_profile.edit_profile(password, int(age), gender, country, occupation, description)
-        self.user_edit_profile(controller, user_profile)
+        user_profile.edit_profile(int(age), gender, country, occupation, description)
+        self.user_edit_profile(controller, user_profile, password)
     
-    def user_edit_profile(self, controller, user_profile: classes.User):
-        send_with_size(client_socket, f"EDTUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
+    def user_edit_profile(self, controller, user_profile: classes.User, password):
+        send_with_size(client_socket, f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
@@ -696,7 +726,55 @@ class EditProfilePage(ctk.CTkFrame):
                 controller.show_page(HomePage_Connected)
         
 
+class ViewProfile(ctk.CTkFrame):
+    def __init__(self, parent, controller, profile_username, connected_status):
+        global user_profile
+        super().__init__(parent)
+        
+        
+        if profile_username == user_profile.username:
+            user_data: classes.User = classes.User.clone(user_profile)
+        else:
+            # i will deal with this later. in this case a will ask the server for the data of the user who has this username, the sever will take it from the database - send to client and it will be displayed.
+            pass
+        
+        name_label = ctk.CTkLabel(self, text=f"The info page of \"{user_data.username}\"")
+        name_label.pack(pady=2)
 
+        email_label = ctk.CTkLabel(self, text=f"Email: {user_data.mail}")
+        email_label.pack()
+        
+        age_label = ctk.CTkLabel(self, text=f"Age: {user_data.age}")
+        age_label.pack()
+
+        gender_label = ctk.CTkLabel(self, text=f"Gender: {user_data.gender}")
+        gender_label.pack()
+
+        country_label = ctk.CTkLabel(self, text=f"Country: {user_data.country}")
+        country_label.pack()
+
+        occupation_label = ctk.CTkLabel(self, text=f"Occupation: {user_data.occupation}")
+        occupation_label.pack()
+        
+        member_since_label = ctk.CTkLabel(self, text=f"Member Since: {user_data.date_creation}")
+        member_since_label.pack()
+
+        description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
+        description_label.pack()
+        
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: self.go_back_h(controller, connected_status))
+        go_back_button.pack(pady=10)
+    
+    def go_back_h(self, controller, connected_status):
+        if connected_status == "connected":
+            controller.show_page(HomePage_Connected)
+        else:
+            controller.show_page(HomePage_Unconnected)
+        
+        
+        
+        
+        
 #class App(ctk.CTk):
 #    def __init__(self, *args, **kwargs):
 #        super().__init__(*args, **kwargs)

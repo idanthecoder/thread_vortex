@@ -11,13 +11,16 @@ class User:
         self.date_creation = date_creation
         self.description = description
     
-    def edit_profile(self, password: str, age: int, gender: str, country: str, occupation: str, description: str):
-        self.password = password
+    def edit_profile(self, age: int, gender: str, country: str, occupation: str, description: str):
         self.age = age
         self.gender = gender
         self.country = country
         self.occupation = occupation
         self.description = description
+    
+    def clone(self):
+        cloned_user = User(self.username, None, self.mail, self.age, self.gender, self.country, self.occupation, self.date_creation, self.description)
+        return cloned_user
 
 
 class Message:
