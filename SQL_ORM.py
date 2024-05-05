@@ -92,6 +92,7 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
     
     def delete_user_by_name(self, username):
         self.cursor.execute(f'''DELETE FROM Users WHERE username = '{username}' ''')
+        self.commit()
     
     
     def update_password(self, username, password):
@@ -110,6 +111,7 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
         self.cursor.execute(f'''UPDATE Users
                             SET password = '{hashed_password}', salt = '{salt}'
                             WHERE username = '{username}' ''')
+        self.commit()
 
     
     def registeration_checks(self, username, mail):
@@ -166,3 +168,4 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
         self.cursor.execute(f'''UPDATE Users
                             SET age = '{user.age}', gender = '{user.gender}', country = '{user.country}', occupation = '{user.occupation}', date_creation = '{user.date_creation}', description = '{user.description}'
                             WHERE username = '{user.username}' ''')
+        self.commit()

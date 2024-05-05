@@ -23,20 +23,36 @@ class User:
         return cloned_user
 
 
-class Message:
-    def __init__(self, content: str, sender: User, date_published: str, conversation_id: int):
-        self.content = content
-        self.seder = sender
-        self.date_published = date_published
-        self.conversation_id = conversation_id
+#class Message:
+#    def __init__(self, content: str, sender: User, date_published: str, conversation_id: int):
+#        self.content = content
+#        self.sender = sender
+#        self.date_published = date_published
+#        self.conversation_id = conversation_id
 
+class Message:
+    def __init__(self, content: str, sender: User, date_published: str):
+        self.content = content
+        self.sender = sender
+        self.date_published = date_published
 
 class Conversation:
-    def __init__(self, id: int, initialize_date: str, title: str, restrictions: list[str], message_lst: list[Message]=None):
+    def __init__(self, creation_date: str, title: str, restrictions: list[str], message_lst: list[Message]=None):
         if message_lst is None:
             message_lst = []
         else:
             self.message_lst = message_lst
-        self.initialize_date = initialize_date
+        self.creation_date = creation_date
         self.title = title
         self.restrictions = restrictions
+
+
+#class Conversation:
+#    def __init__(self, id: int, creation_date: str, title: str, restrictions: list[str], message_lst: list[Message]=None):
+#        if message_lst is None:
+#            message_lst = []
+#        else:
+#            self.message_lst = message_lst
+#        self.creation_date = creation_date
+#        self.title = title
+#        self.restrictions = restrictions

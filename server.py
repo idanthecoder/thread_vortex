@@ -86,6 +86,10 @@ class TCPServer:
                     users_db.edit_user_data(user)
                     to_send = "EDTUSR|edited_profile"
                     users_db.print_table("Users")
+                elif command == "NEWCON":
+                    # create a new conversation including the first message within it
+                    pass
+                    
                 
                 
                 

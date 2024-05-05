@@ -498,14 +498,17 @@ class RegisterPage(ctk.CTkFrame):
         description_entry = ctk.CTkTextbox(self)
         description_entry.pack()
 
-        register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(controller, name_entry.get(), password_entry.get(), email_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), datetime.datetime.now(), description_entry.get("1.0", "end-1c")))
+        register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(controller, name_entry.get(), password_entry.get(), email_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
         register_button.pack(pady=10)
         
         go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Unconnected))
         go_back_button.pack(pady=10)
     
-    def user_register_h(self, controller, username, password, mail, age, gender, country, occupation, date_creation, description):
+    def user_register_h(self, controller, username, password, mail, age, gender, country, occupation, description):
         global user_profile
+        
+        current_date = datetime.datetime.now()
+        date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
         
         user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
         self.user_register(controller, user_profile)
@@ -623,22 +626,22 @@ class HomePage_Connected(ctk.CTkFrame):
         self.edit_profile_button = ctk.CTkButton(self.top_bar, text="Edit Profile", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(EditProfilePage))
         self.edit_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
         
-        #profile info
+        # view profile button
         view_profile_icon_image = Image.open(fp=os.path.join("assets","default user icon 2.png"))
-        #profile_icon_image.resize((40, 40), Image.LANCZOS)
-        #
-        #self.profile_icon_tkimage = ImageTk.PhotoImage(image=profile_icon_image)
-        
-        #self.view_profile_icon_path = ImageTk.PhotoImage(file=os.path.join("assets","default user icon 2.png"))
-        
         self.view_profile_icon = ctk.CTkImage(light_image=view_profile_icon_image, size=(40, 40))
         self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username, connected_status="connected"))
-        #self.view_profile_button.configure(width=40, height=40)
         self.view_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
 
         # Sidebar with topics
         self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
         self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
+        
+        # new conversation button
+        new_conversation_icon_image = Image.open(fp=os.path.join("assets","plus icon 3.png"))
+        self.new_conversation_icon = ctk.CTkImage(light_image=new_conversation_icon_image, size=(40, 40))
+        self.new_conversation_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_conversation_icon, command=lambda: controller.show_page(CreateNewConversation))
+        self.new_conversation_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        
         self.topics = ["Gaming", "Cyber", "Tech", "Fashion", "Sports", "History", "Politics", "Physics"]
         for topic in self.topics:
             ctk.CTkButton(self.sidebar, text=topic, fg_color="white", text_color="black", hover_color="cyan", width=100).pack(pady=2)
@@ -770,6 +773,54 @@ class ViewProfile(ctk.CTkFrame):
             controller.show_page(HomePage_Connected)
         else:
             controller.show_page(HomePage_Unconnected)
+    
+
+class CreateNewConversation(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        global user_profile
+        super().__init__(parent)
+        
+        frame_title_label = ctk.CTkLabel(self, text="Create a new conversation:")
+        frame_title_label.pack(pady=4)
+        
+        
+        conversation_title_label = ctk.CTkLabel(self, text="Title of the conversation:")
+        conversation_title_label.pack()
+        conversation_title_entry = ctk.CTkEntry(self)
+        conversation_title_entry.pack()
+        
+        message_content_label = ctk.CTkLabel(self, text="Message content:")
+        message_content_label.pack()
+        message_content_entry = ctk.CTkEntry(self)
+        message_content_entry.pack()
+        
+        restriction_label = ctk.CTkLabel(self, text="Restrict access:")
+        restriction_label.pack()
+        radio_var = ctk.StringVar()
+        restriction_radiobutton1 = ctk.CTkRadioButton(master=self, text="18+", variable= radio_var, value="18+")
+        restriction_radiobutton2 = ctk.CTkRadioButton(master=self, text="Unrestricted", variable= radio_var, value="unrestricted")
+        restriction_radiobutton1.pack(padx=20, pady=10)
+        restriction_radiobutton2.pack(padx=20, pady=10)
+        
+        add_conversation_button = ctk.CTkButton(self, text="Commit changes", command=lambda: self.add_conversation(controller, conversation_title_entry.get(), message_content_entry.get(), radio_var.get()))
+        add_conversation_button.pack(pady=10)
+        
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
+        go_back_button.pack(pady=10)
+    
+    def add_conversation(self, controller, conversation_title, message_content, restriction_status):
+        current_date = datetime.datetime.now()
+        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
+        send_with_size(client_socket, f"NEWCON|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "NEWCON":
+            if data[1] == "???":
+                #user_profile = classes.User(data[2], None, data[3], int(data[4]), data[5], data[6], data[7], data[8], data[9])
+                #controller.show_page(HomePage_Connected)
+                pass
         
         
         
