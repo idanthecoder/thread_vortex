@@ -603,6 +603,9 @@ class HomePage_Unconnected(ctk.CTkFrame):
         
         request_conversations(5, self.content_area)
         
+        self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
+        self.request_conversations_button.pack()
+
         #self.messages = [
         #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
         #    {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
@@ -656,6 +659,8 @@ class HomePage_Connected(ctk.CTkFrame):
         
         request_conversations(5, self.content_area)
         
+        self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
+        self.request_conversations_button.pack()
         #self.messages = [
         #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
         #    {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
@@ -845,10 +850,12 @@ class CreateNewConversation(ctk.CTkFrame):
             return
         
         if data[0] == "NEWCON":
-            if data[1] == "???":
+            if data[1] == "new_conversation_added":
                 #user_profile = classes.User(data[2], None, data[3], int(data[4]), data[5], data[6], data[7], data[8], data[9])
                 #controller.show_page(HomePage_Connected)
-                pass
+                # for now you return to main screen. later you will be in your conversation.
+                messagebox.showinfo("Info", "Created new conversation!")
+                controller.show_page(HomePage_Connected)
         
         
         
@@ -932,6 +939,7 @@ class ConversationGUI(ctk.CTkFrame):
 
 
 if __name__ == "__main__":
+    # perhaps I should have a global: connected_status and maybe in_conversation to know where to return to after reading user's data.
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('localhost', 12345))
     user_profile = None
