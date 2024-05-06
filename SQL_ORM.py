@@ -11,7 +11,7 @@ import classes
 __author__ = "Idan"
 
 
-class UsernamePasswordORM(object): # do not use yet! not compatable yet.
+class UsernamePasswordORM(object):
     def __init__(self, db_name="UsernamePassword.db"):
         self.db_name = db_name
         self.conn = None  # will store the DB connection
@@ -169,3 +169,175 @@ class UsernamePasswordORM(object): # do not use yet! not compatable yet.
                             SET age = '{user.age}', gender = '{user.gender}', country = '{user.country}', occupation = '{user.occupation}', date_creation = '{user.date_creation}', description = '{user.description}'
                             WHERE username = '{user.username}' ''')
         self.commit()
+    
+    def get_data_from_username(self, username):
+        data = self.cursor.execute(f'''SELECT * FROM Users 
+                                   WHERE username = '{username}' ''').fetchall()
+        return data[0]
+    
+    #def get_id_from_username(self, username):
+    #    data = self.cursor.execute(f'''SELECT user_id FROM Users 
+    #                               WHERE username = '{username}' ''').fetchall()
+    #    return data[0]
+
+#---------------------------------
+
+class MessagesORM(object):
+    def __init__(self, db_name="Messages.db"):
+        self.db_name = db_name
+        self.conn = None  # will store the DB connection
+        self.cursor = None  # will store the DB connection cursor
+
+    def connect(self):
+        """
+        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
+        :parameter: nothing
+        :return: nothing
+        """
+
+        self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
+        self.cursor = self.conn.cursor()
+
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
+
+    def commit(self):
+        self.conn.commit()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Messages (
+                message_id INTEGER PRIMARY KEY,
+                content TEXT,
+                date_published TEXT,
+                sender_username TEXT,
+                conversation_title TEXT
+            )
+        ''')
+
+        self.commit()
+
+    def insert_message(self, message: classes.MessageVServer):
+        self.cursor.execute('''
+            INSERT INTO Messages (content, date_published, sender_username, conversation_title)
+            VALUES (?, ?, ?, ?)
+        ''', (message.content, message.date_published, message.sender_username, message.conversation_title))
+        self.commit()
+
+    def print_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        print(table_list)
+
+    def get_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        return table_list
+
+    def update_message(self, message_id, subject, data):
+        self.cursor.execute(f'''
+                    UPDATE Messages
+                    SET {subject} = '{data}'
+                    WHERE message_id = {message_id}
+                ''')
+        self.commit()
+
+    def delete_message(self, message_id):
+        self.cursor.execute(f'''
+                    DELETE FROM Messages
+                    WHERE message_id = {message_id}
+                ''')
+        self.commit()
+
+    def get_whole_col(self, subject):
+        return self.cursor.execute(f'''SELECT {subject} FROM Messages''').fetchall()
+
+    def get_specific(self, message_id, subject):
+        return self.cursor.execute(f'''SELECT {subject} FROM Messages WHERE message_id = {message_id}''').fetchall()
+    
+#---------------------------------
+
+class ConversationsORM(object):
+    def __init__(self, db_name="Conversations.db"):
+        self.db_name = db_name
+        self.conn = None  # will store the DB connection
+        self.cursor = None  # will store the DB connection cursor
+
+    def connect(self):
+        """
+        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
+        :parameter: nothing
+        :return: nothing
+        """
+
+        self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
+        self.cursor = self.conn.cursor()
+
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
+
+    def commit(self):
+        self.conn.commit()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Conversations (
+                conversation_id INTEGER PRIMARY KEY,
+                title TEXT UNIQUE,
+                creator_username TEXT,
+                creation_date TEXT,
+                restrictions TEXT
+            )
+        ''')
+
+        self.commit()
+
+    def insert_conversation(self, conversation: classes.ConversationVServer):
+        self.cursor.execute('''
+            INSERT INTO Conversations (title, creator_username, creation_date, restrictions)
+            VALUES (?, ?, ?, ?)
+        ''', (conversation.title, conversation.creator_username, conversation.creation_date, conversation.restrictions))
+        self.commit()
+
+    def print_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        print(table_list)
+
+    def get_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        return table_list
+
+    def update_conversation(self, conversation_id, subject, data):
+        self.cursor.execute(f'''
+                    UPDATE Conversations
+                    SET {subject} = '{data}'
+                    WHERE conversation_id = {conversation_id}
+                ''')
+        self.commit()
+
+    def delete_conversation(self, conversation_id):
+        self.cursor.execute(f'''
+                    DELETE FROM Conversations
+                    WHERE conversation_id = {conversation_id}
+                ''')
+        self.commit()
+
+    def get_whole_col(self, subject):
+        return self.cursor.execute(f'''SELECT {subject} FROM Conversations''').fetchall()
+
+    def get_specific(self, conversation_id, subject):
+        return self.cursor.execute(f'''SELECT {subject} FROM Conversations WHERE conversation_id = {conversation_id}''').fetchall()
+
+    #def get_id_from_title(self, title):
+    #    data = self.cursor.execute(f'''SELECT conversation_id FROM Conversations 
+    #                               WHERE title = '{title}' ''').fetchall()
+    #    return data[0]
+
+    def get_last_conversations(self, amount=1):
+        all_convs = self.get_table("Conversations")
+        if len(all_convs) == 0:
+            return []
+        if len(all_convs) < amount:
+            return all_convs[-len(all_convs):]
+        else:
+            return all_convs[-amount:] 

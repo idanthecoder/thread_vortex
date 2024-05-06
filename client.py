@@ -600,13 +600,16 @@ class HomePage_Unconnected(ctk.CTkFrame):
         # Main content area with messages
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
-        self.messages = [
-            {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
-            {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
-            # Add more messages here...
-        ]
-        for message in self.messages:
-            Message(self.content_area, message["user"], message["date"], message["content"])
+        
+        request_conversations(5, self.content_area)
+        
+        #self.messages = [
+        #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
+        #    {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
+        #    # Add more messages here...
+        #]
+        #for message in self.messages:
+        #    Message(self.content_area, message["user"], message["date"], message["content"])
 
 class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -650,17 +653,42 @@ class HomePage_Connected(ctk.CTkFrame):
         # Main content area with messages
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
-        self.messages = [
-            {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
-            {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
-            # Add more messages here...
-        ]
-        for message in self.messages:
-            Message(self.content_area, message["user"], message["date"], message["content"])
+        
+        request_conversations(5, self.content_area)
+        
+        #self.messages = [
+        #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
+        #    {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
+        #    # Add more messages here...
+        #]
+        #for message in self.messages:
+        #    Message(self.content_area, message["user"], message["date"], message["content"])
     
     def disconnect(self, controller):
         if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
             controller.show_page(HomePage_Unconnected)
+
+
+def request_conversations(amount,  frame_area):
+    send_with_size(client_socket, f"GETCNV|{amount}")
+    data = recv_by_size(client_socket).decode().split('|')
+    if len(data) <= 1:
+        return
+    
+    if data[0] == "GETCNV":
+        if data[1] != "no_conversations":
+            conversations = []
+            for i, convdata in enumerate(data[2:]):
+                conv_splt = convdata.split(',')
+                conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+            
+            conv: classes.Conversation
+            for i, conv in enumerate(conversations):
+                ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
+                
+            
+            
+
 
 class EditProfilePage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -727,7 +755,7 @@ class EditProfilePage(ctk.CTkFrame):
             if data[1] == "edited_profile":
                 messagebox.showinfo("Info", "User profile updated successfuly")
                 controller.show_page(HomePage_Connected)
-        
+
 
 class ViewProfile(ctk.CTkFrame):
     def __init__(self, parent, controller, profile_username, connected_status):
@@ -867,22 +895,46 @@ class CreateNewConversation(ctk.CTkFrame):
 #        for message in self.messages:
 #            Message(self.content_area, message["user"], message["date"], message["content"])
 
-class Message(ctk.CTkFrame):
-    def __init__(self, parent, user, date, content):
+#class Message(ctk.CTkFrame):
+#    def __init__(self, parent, user, date, content):
+#        super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
+#        self.pack_propagate(False)
+#        self.pack(fill=ctk.X, padx=4, pady=2)
+#        self.user_label = ctk.CTkLabel(self, text=user)
+#        self.user_label.pack(side=ctk.LEFT, padx=10)
+#        self.date_label = ctk.CTkLabel(self, text=date)
+#        self.date_label.pack(side=ctk.RIGHT, padx=10)
+#        self.content_label = ctk.CTkLabel(self, text=content)
+#        self.content_label.pack(side=ctk.TOP, pady=35)
+class ConversationGUI(ctk.CTkFrame):
+    def __init__(self, parent, title, username, date):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
-        self.user_label = ctk.CTkLabel(self, text=user)
+        self.user_label = ctk.CTkLabel(self, text=username)
         self.user_label.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
-        self.content_label = ctk.CTkLabel(self, text=content)
-        self.content_label.pack(side=ctk.TOP, pady=35)
+        self.title_label = ctk.CTkLabel(self, text=title)
+        self.title_label.pack(side=ctk.TOP, pady=35)
+
+
+#def get_conversations():
+#    send_with_size(client_socket, f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
+#    data = recv_by_size(client_socket).decode().split('|')
+#    if len(data) <= 1:
+#        return
+#    
+#    if data[0] == "EDTUSR":
+#        if data[1] == "edited_profile":
+#            messagebox.showinfo("Info", "User profile updated successfuly")
+#            controller.show_page(HomePage_Connected)
 
 
 if __name__ == "__main__":
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('localhost', 12345))
     user_profile = None
+    #get_conversations_thread = threading.Thread(target=get_conversations)
     app = App()
     app.mainloop()

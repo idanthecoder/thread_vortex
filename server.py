@@ -16,6 +16,15 @@ users_db = SQL_ORM.UsernamePasswordORM()
 users_db.connect()
 users_db.create_table()
 
+messages_db = SQL_ORM.MessagesORM()
+messages_db.connect()
+messages_db.create_table()
+
+conversations_db = SQL_ORM.ConversationsORM()
+conversations_db.connect()
+conversations_db.create_table()
+
+
 
 class TCPServer:
     def __init__(self, host, port):
@@ -88,13 +97,44 @@ class TCPServer:
                     users_db.print_table("Users")
                 elif command == "NEWCON":
                     # create a new conversation including the first message within it
-                    pass
+                    
+                    # {conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}
+                    
+                    #posted_user_data = users_db.get_data_from_username(fields[4])
+                    #posted_user_data[3] is salt
+                    #posted_user = classes.User(posted_user_data[1], posted_user_data[2], posted_user_data[4], posted_user_data[5], posted_user_data[6], posted_user_data[7], posted_user_data[8], posted_user_data[9], posted_user_data[10])
+                    
+                    
+                    conversation = classes.ConversationVServer(fields[0], fields[4], fields[3], fields[2])
+                    conversations_db.insert_conversation(conversation)
+                    # there can't be two titles with the same name!!
+                    #conversation_id = conversations_db.get_id_from_title(fields[0])
+                    
+                    message = classes.MessageVServer(fields[1], fields[3], fields[4], fields[0])
+                    messages_db.insert_message(message)
+                    
+                    to_send = "new_conversation_added"
+                    # not done yet. need to add a check for if a conversation with the same title already exists. and maybe let the user enter the conversation he has created?
+
+                elif command == "GETCNV":
+                    last_conversations = conversations_db.get_last_conversations(int(fields[0]))
+                    if last_conversations == []:
+                        to_send = "GETCNV|no_conversations"
+                    else:
+                        to_send = "GETCNV|"
+                        
+                        for i, conv in enumerate(last_conversations):
+                            if i == len(last_conversations)-1:
+                                to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
+                            else:
+                                to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
+                                
+                        
+
+                    
                     
                 
-                
-                
-                
-                
+
                 
                 
                 send_with_size(client_socket, to_send)

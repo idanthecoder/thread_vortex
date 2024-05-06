@@ -36,15 +36,31 @@ class Message:
         self.sender = sender
         self.date_published = date_published
 
+class MessageVServer:
+    def __init__(self, content: str, date_published: str, sender_username: str, conversation_title: str):
+        self.content = content
+        self.date_published = date_published
+        self.sender_username = sender_username
+        self.conversation_title = conversation_title
+
 class Conversation:
-    def __init__(self, creation_date: str, title: str, restrictions: list[str], message_lst: list[Message]=None):
+    def __init__(self, title: str, creator_username: int, creation_date: str, restrictions: str, message_lst: list[Message]=None):
+        self.title = title
+        self.creator_username = creator_username
+        self.creation_date = creation_date
+        self.restrictions = restrictions
         if message_lst is None:
             message_lst = []
         else:
             self.message_lst = message_lst
-        self.creation_date = creation_date
+
+class ConversationVServer:
+    def __init__(self, title: str, creator_username: str, creation_date: str, restrictions: str):
         self.title = title
+        self.creator_username = creator_username
+        self.creation_date = creation_date
         self.restrictions = restrictions
+
 
 
 #class Conversation:
