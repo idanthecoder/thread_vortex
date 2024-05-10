@@ -32,6 +32,7 @@ class TCPServer:
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clients = []
+        self.clients_conversations = {}
         self.exit_all = False
 
     def start(self):
@@ -116,18 +117,41 @@ class TCPServer:
                     to_send = "new_conversation_added"
                     # not done yet. need to add a check for if a conversation with the same title already exists. and maybe let the user enter the conversation he has created?
 
-                elif command == "GETCNV":
+                elif command == "MORCNV":
+                    if client_socket in self.clients_conversations.keys():
+                        shown_titles = self.clients_conversations[client_socket]
+                        new_last_convs = conversations_db.get_last_new_conversations(shown_titles, int(fields[0]))
+                        if len(new_last_convs) == 0:
+                            to_send = "MORCNV|no_conversations"
+                        else:
+                            to_send = "MORCNV|"
+                        
+                            for i, conv in enumerate(new_last_convs):
+                                if i == len(new_last_convs)-1:
+                                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
+                                else:
+                                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
+                            
+                            shown_titles = shown_titles + self.apart_titles_from_lst(new_last_convs)
+                            self.clients_conversations[client_socket] = shown_titles
+                    else:
+                        # in case client not in the dictionary. maybe make it so that this isn't possible? so when one loggs in he immediatly requests the first messages.
+                        pass
+                
+                elif command == "FSTCNV":
                     last_conversations = conversations_db.get_last_conversations(int(fields[0]))
                     if last_conversations == []:
-                        to_send = "GETCNV|no_conversations"
+                        to_send = "FSTCNV|no_conversations"
                     else:
-                        to_send = "GETCNV|"
+                        to_send = "FSTCNV|"
                         
                         for i, conv in enumerate(last_conversations):
                             if i == len(last_conversations)-1:
                                 to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
                             else:
                                 to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
+                        
+                    self.clients_conversations[client_socket] = self.apart_titles_from_lst(last_conversations)
                                 
                         
 
@@ -138,11 +162,17 @@ class TCPServer:
                 
                 
                 send_with_size(client_socket, to_send)
-        except Exception as e:
-            print(f"Error: {e}")
+        #except Exception as e:
+        #    print(f"Error: {e}")
         finally:
             self.clients.remove(client_socket)
             client_socket.close()
+
+    def apart_titles_from_lst(self, conversation_lst):
+        titles_lst = []
+        for conv in conversation_lst:
+            titles_lst.append(conv[1])
+        return titles_lst
 
     def broadcast(self, message):
         for client_socket in self.clients:

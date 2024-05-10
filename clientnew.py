@@ -228,10 +228,12 @@ class HomePage_Connected(ctk.CTkFrame):
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
+        self.conversation_handler = HandleConversations(self.content_area, 5)
+        
         #request_conversations(5, self.content_area)
         #
-        #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
-        #self.request_conversations_button.pack()
+        self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, 5))
+        self.request_conversations_button.pack()
         
         #self.messages = [
         #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
@@ -466,26 +468,44 @@ class ConversationGUI(ctk.CTkFrame):
 
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
-    def __init__(self) -> None:
-        self.conversations_lst = self.get_initial_conversations()
+    def __init__(self, frame_area, amount=5) -> None:
+        self.conversations_lst: list[classes.ConversationVServer] = self.get_initial_conversations(frame_area, amount)
     
-    def get_initial_conversations(amount):
-        send_with_size(client_socket, f"GETCNV|{amount}")
+    def get_initial_conversations(self, frame_area, amount=5):
+        send_with_size(client_socket, f"FSTCNV|{amount}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
         
-        if data[0] == "GETCNV":
+        if data[0] == "FSTCNV":
             if data[1] != "no_conversations":
                 conversations = []
-                for i, convdata in enumerate(data[2:]):
+                for convdata in data[2:]:
                     conv_splt = convdata.split(',')
                     conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+        
+        self.draw_conversations(conversations, frame_area)
         return conversations
 
-    def draw_conversation(conversations: list[classes.ConversationVServer], frame_area):
-        for i, conv in enumerate(conversations):
+    def draw_conversations(self, conversations, frame_area):
+        for conv in conversations:
             ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
+    
+    def request_more(self, frame_area, amount=5):
+        send_with_size(client_socket, f"MORCNV|{amount}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "MORCNV":
+            if data[1] != "no_conversations":
+                conversations = []
+                for convdata in data[2:]:
+                    conv_splt = convdata.split(',')
+                    self.conversations_lst.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                    conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                self.draw_conversations(conversations, frame_area)
+                self.conversations_lst.append(conversations) 
     
 
 if __name__ == "__main__":

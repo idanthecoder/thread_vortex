@@ -341,3 +341,33 @@ class ConversationsORM(object):
             return all_convs[-len(all_convs):]
         else:
             return all_convs[-amount:] 
+        
+    
+    def get_last_new_conversations(self, shown_titles, amount=1):
+        all_convs = self.get_table("Conversations")
+        if len(all_convs) == 0:
+            return []
+        
+        return_lst = []
+        all_convs_reverse =list(reversed(all_convs))
+        
+        for conv in all_convs_reverse:
+            if not conv[1] in shown_titles:
+                return_lst.append(conv)
+                # if all found, break the loop and return the values
+                if len(return_lst) == amount:
+                    return return_lst
+        
+        # check
+        if len(return_lst) == 0:
+            # no new conversations
+            return []
+        # in this case there are new conversations, just not the requested amount
+        return return_lst
+        
+        
+    
+            
+
+            
+            
