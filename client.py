@@ -601,10 +601,10 @@ class HomePage_Unconnected(ctk.CTkFrame):
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
-        request_conversations(5, self.content_area)
-        
-        self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
-        self.request_conversations_button.pack()
+        #request_conversations(5, self.content_area)
+        #
+        #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
+        #self.request_conversations_button.pack()
 
         #self.messages = [
         #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
@@ -657,10 +657,11 @@ class HomePage_Connected(ctk.CTkFrame):
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
-        request_conversations(5, self.content_area)
+        #request_conversations(5, self.content_area)
+        #
+        #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
+        #self.request_conversations_button.pack()
         
-        self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: print("requesting more"))
-        self.request_conversations_button.pack()
         #self.messages = [
         #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
         #    {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
@@ -674,22 +675,21 @@ class HomePage_Connected(ctk.CTkFrame):
             controller.show_page(HomePage_Unconnected)
 
 
-def request_conversations(amount,  frame_area):
-    send_with_size(client_socket, f"GETCNV|{amount}")
-    data = recv_by_size(client_socket).decode().split('|')
-    if len(data) <= 1:
-        return
-    
-    if data[0] == "GETCNV":
-        if data[1] != "no_conversations":
-            conversations = []
-            for i, convdata in enumerate(data[2:]):
-                conv_splt = convdata.split(',')
-                conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-            
-            conv: classes.Conversation
-            for i, conv in enumerate(conversations):
-                ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
+#def request_conversations(amount,  frame_area):
+#    send_with_size(client_socket, f"GETCNV|{amount}")
+#    data = recv_by_size(client_socket).decode().split('|')
+#    if len(data) <= 1:
+#        return
+#    
+#    if data[0] == "GETCNV":
+#        if data[1] != "no_conversations":
+#            conversations = []
+#            for i, convdata in enumerate(data[2:]):
+#                conv_splt = convdata.split(',')
+#                conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+#            
+#            for i, conv in enumerate(conversations):
+#                ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
                 
             
             
@@ -937,6 +937,49 @@ class ConversationGUI(ctk.CTkFrame):
 #            messagebox.showinfo("Info", "User profile updated successfuly")
 #            controller.show_page(HomePage_Connected)
 
+#def get_initial_conversations(amount):
+#    send_with_size(client_socket, f"GETCNV|{amount}")
+#    data = recv_by_size(client_socket).decode().split('|')
+#    if len(data) <= 1:
+#        return
+#    
+#    if data[0] == "GETCNV":
+#        if data[1] != "no_conversations":
+#            conversations = []
+#            for i, convdata in enumerate(data[2:]):
+#                conv_splt = convdata.split(',')
+#                conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+#    return conversations
+
+
+#def draw_conversation(conversations: list[classes.ConversationVServer], frame_area):
+#    for i, conv in enumerate(conversations):
+#        ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
+        
+
+class HandleConversations:
+    # maybe the mainscreens will get an instance of this class
+    def __init__(self) -> None:
+        self.conversations_lst = self.get_initial_conversations()
+    
+    def get_initial_conversations(amount):
+        send_with_size(client_socket, f"GETCNV|{amount}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "GETCNV":
+            if data[1] != "no_conversations":
+                conversations = []
+                for i, convdata in enumerate(data[2:]):
+                    conv_splt = convdata.split(',')
+                    conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+        return conversations
+
+    def draw_conversation(conversations: list[classes.ConversationVServer], frame_area):
+        for i, conv in enumerate(conversations):
+            ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
+    
 
 if __name__ == "__main__":
     # perhaps I should have a global: connected_status and maybe in_conversation to know where to return to after reading user's data.
