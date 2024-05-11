@@ -233,7 +233,7 @@ class HomePage_Connected(ctk.CTkFrame):
         #request_conversations(5, self.content_area)
         #
         self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, 5))
-        self.request_conversations_button.pack()
+        self.request_conversations_button.pack(side=ctk.BOTTOM)
         
         #self.messages = [
         #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
