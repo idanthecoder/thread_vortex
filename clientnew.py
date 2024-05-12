@@ -438,7 +438,7 @@ class ConversationGUI(ctk.CTkFrame):
         self.date_label.pack(side=ctk.RIGHT, padx=10)
         #self.title_label = ctk.CTkLabel(self, text=title)
         #self.title_label.pack(side=ctk.TOP, pady=35)
-        self.title_button = ctk.CTkButton(self, text=title, fg_color="white", command= lambda: controller.show_page(InsideConversationGUI, title=title))
+        self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(InsideConversationGUI, title=title))
         self.title_button.pack(side=ctk.TOP, pady=35)
 
 
@@ -539,7 +539,7 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.new_message_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_message_icon, command=lambda: controller.show_page(CreateNewMessage, title=title))
         self.new_message_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
         
-        self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="Return to Home page", command=lambda: controller.show_page(HomePage_Connected))
+        self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=lambda: controller.show_page(HomePage_Connected))
         self.go_back_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
 
         # Add messages here
