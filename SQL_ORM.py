@@ -254,6 +254,26 @@ class MessagesORM(object):
     def get_specific(self, message_id, subject):
         return self.cursor.execute(f'''SELECT {subject} FROM Messages WHERE message_id = {message_id}''').fetchall()
     
+    def get_first_messages(self, conversation_title, amount=1):
+        all_messages = self.cursor.execute(f'''SELECT * FROM Messages 
+                                           WHERE conversation_title = '{conversation_title}' ''').fetchall()
+        
+        if len(all_messages) == 0:
+            return []
+        
+        if len(all_messages) < amount:
+            return all_messages[0:len(all_messages)]
+        else:
+            return all_messages[0:amount]
+        
+        #all_convs = self.get_table("Conversations")
+        #if len(all_convs) == 0:
+        #    return []
+        #if len(all_convs) < amount:
+        #    return all_convs[-len(all_convs):]
+        #else:
+        #    return all_convs[-amount:] 
+    
 #---------------------------------
 
 class ConversationsORM(object):
@@ -364,6 +384,24 @@ class ConversationsORM(object):
             return []
         # in this case there are new conversations, just not the requested amount
         return return_lst
+
+    def conversation_checks(self, title):
+        """
+        Process: conduct all checks for registeration - mail and username must be unique
+        :parameter: username (string), mail (string)
+        :return: a list ([] means success, other results explain the issue)
+        """
+        
+        # search for the existence of the name and mail
+        title_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
+                                   WHERE title = '{title}' ''').fetchall())
+        
+        # return if both mail and name are unavailable or just one of them
+        if title_in_data :
+            return ["title_exists"]
+        
+        # a valid regiseration
+        return []
         
         
     

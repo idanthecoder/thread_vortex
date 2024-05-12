@@ -96,7 +96,7 @@ class TCPServer:
                     users_db.edit_user_data(user)
                     to_send = "EDTUSR|edited_profile"
                     users_db.print_table("Users")
-                elif command == "NEWCON":
+                elif command == "NEWCNV":
                     # create a new conversation including the first message within it
                     
                     # {conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}
@@ -104,17 +104,20 @@ class TCPServer:
                     #posted_user_data = users_db.get_data_from_username(fields[4])
                     #posted_user_data[3] is salt
                     #posted_user = classes.User(posted_user_data[1], posted_user_data[2], posted_user_data[4], posted_user_data[5], posted_user_data[6], posted_user_data[7], posted_user_data[8], posted_user_data[9], posted_user_data[10])
-                    
-                    
-                    conversation = classes.ConversationVServer(fields[0], fields[4], fields[3], fields[2])
-                    conversations_db.insert_conversation(conversation)
-                    # there can't be two titles with the same name!!
-                    #conversation_id = conversations_db.get_id_from_title(fields[0])
-                    
-                    message = classes.MessageVServer(fields[1], fields[3], fields[4], fields[0])
-                    messages_db.insert_message(message)
-                    
-                    to_send = "new_conversation_added"
+                    conversation_status = conversations_db.conversation_checks(fields[0])
+                    if not conversation_status:
+                        conversation = classes.ConversationVServer(fields[0], fields[4], fields[3], fields[2])
+                        conversations_db.insert_conversation(conversation)
+                        # there can't be two titles with the same name!!
+                        #conversation_id = conversations_db.get_id_from_title(fields[0])
+                        
+                        message = classes.MessageVServer(fields[1], fields[3], fields[4], fields[0])
+                        messages_db.insert_message(message)
+                        
+                        to_send = "NEWCNV|new_conversation_added"
+                    else:
+                        if conversation_status[0] == "title_exists":
+                            to_send = "NEWCNV|title_issue"
                     # not done yet. need to add a check for if a conversation with the same title already exists. and maybe let the user enter the conversation he has created?
 
                 elif command == "MORCNV":
@@ -152,7 +155,48 @@ class TCPServer:
                                 to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
                         
                     self.clients_conversations[client_socket] = self.apart_titles_from_lst(last_conversations)
-                                
+                
+                elif command == "NEWMSG":
+                    message = classes.MessageVServer(fields[0], fields[1], fields[2], fields[3])
+                    messages_db.insert_message(message)
+                
+                    to_send = "NEWMSG|new_message_added"
+                
+                elif command == "FSTMSG":
+                    first_messages = messages_db.get_first_messages(fields[1], int(fields[0]))
+                    if first_messages == []:
+                        to_send = "FSTMSG|no_messages"
+                    else:
+                        to_send = "FSTMSG|"
+                        
+                        for i, msg in enumerate(first_messages):
+                            if i == len(first_messages)-1:
+                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}"
+                            else:
+                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}|"
+                        
+                    #self.clients_conversations[client_socket] = self.apart_titles_from_lst(first_messages)
+                
+                #elif command == "MORMSG":
+                #    if client_socket in self.clients_conversations.keys():
+                #        shown_titles = self.clients_conversations[client_socket]
+                #        new_last_convs = conversations_db.get_last_new_conversations(shown_titles, int(fields[0]))
+                #        if len(new_last_convs) == 0:
+                #            to_send = "MORCNV|no_conversations"
+                #        else:
+                #            to_send = "MORCNV|"
+                #        
+                #            for i, conv in enumerate(new_last_convs):
+                #                if i == len(new_last_convs)-1:
+                #                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
+                #                else:
+                #                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
+                #            
+                #            shown_titles = shown_titles + self.apart_titles_from_lst(new_last_convs)
+                #            self.clients_conversations[client_socket] = shown_titles
+                #    else:
+                #        # in case client not in the dictionary. maybe make it so that this isn't possible? so when one loggs in he immediatly requests the first messages.
+                #        pass
                         
 
                     
