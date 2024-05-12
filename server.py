@@ -177,26 +177,20 @@ class TCPServer:
                         
                     #self.clients_conversations[client_socket] = self.apart_titles_from_lst(first_messages)
                 
-                #elif command == "MORMSG":
-                #    if client_socket in self.clients_conversations.keys():
-                #        shown_titles = self.clients_conversations[client_socket]
-                #        new_last_convs = conversations_db.get_last_new_conversations(shown_titles, int(fields[0]))
-                #        if len(new_last_convs) == 0:
-                #            to_send = "MORCNV|no_conversations"
-                #        else:
-                #            to_send = "MORCNV|"
-                #        
-                #            for i, conv in enumerate(new_last_convs):
-                #                if i == len(new_last_convs)-1:
-                #                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
-                #                else:
-                #                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
-                #            
-                #            shown_titles = shown_titles + self.apart_titles_from_lst(new_last_convs)
-                #            self.clients_conversations[client_socket] = shown_titles
-                #    else:
-                #        # in case client not in the dictionary. maybe make it so that this isn't possible? so when one loggs in he immediatly requests the first messages.
-                #        pass
+                elif command == "MORMSG":
+                    # work on this
+                    new_first_messages = messages_db.get_first_new_messages(fields[1], fields[2], int(fields[0]))
+
+                    if new_first_messages == []:
+                        to_send = "MORMSG|no_messages"
+                    else:
+                        to_send = "MORMSG|"
+                        
+                        for i, msg in enumerate(new_first_messages):
+                            if i == len(new_first_messages)-1:
+                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}"
+                            else:
+                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}|"
                         
 
                     

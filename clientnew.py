@@ -549,8 +549,10 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         self.messages_handler = HandleMessages(self.content_area, controller, title, 5)
         
-        self.request_messages_button = ctk.CTkButton(self.content_area, text="More Messages", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.messages_handler.request_more(self.content_area, controller, 5))
+        self.request_messages_button = ctk.CTkButton(self.content_area, text="More Messages", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.messages_handler.request_more())
         self.request_messages_button.pack(side=ctk.BOTTOM)
+        
+        #self.after(1000, lambda: self.messages_handler.request_more(self.content_area, controller, 5))
         
 
 class CreateNewMessage(ctk.CTkFrame):
@@ -569,7 +571,7 @@ class CreateNewMessage(ctk.CTkFrame):
         add_message_button = ctk.CTkButton(self, text="Add a message", command=lambda: self.add_message(controller, message_content_entry.get("1.0", "end-1c"), title))
         add_message_button.pack(pady=10)
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(InsideConversationGUI, title=title))
+        go_back_button = ctk.CTkButton(self, text="Return to conversation", command=lambda: controller.show_page(InsideConversationGUI, title=title))
         go_back_button.pack(pady=10)
     
     def add_message(self, controller, message_content, conversation_title):
@@ -582,9 +584,7 @@ class CreateNewMessage(ctk.CTkFrame):
         
         if data[0] == "NEWMSG":
             if data[1] == "new_message_added":
-                #user_profile = classes.User(data[2], None, data[3], int(data[4]), data[5], data[6], data[7], data[8], data[9])
-                #controller.show_page(HomePage_Connected)
-                # for now you return to main screen. later you will be in your conversation.
+
                 messagebox.showinfo("Info", "added new message")
                 controller.show_page(InsideConversationGUI, title=conversation_title)
 
@@ -592,10 +592,15 @@ class CreateNewMessage(ctk.CTkFrame):
 class HandleMessages:
     # maybe the mainscreens will get an instance of this class
     def __init__(self, frame_area, controller, conversation_title, amount=5) -> None:
-        self.messages_lst: list[classes.ConversationVServer] = self.get_initial_messages(frame_area, controller, conversation_title, amount)
+        self.frame_area = frame_area
+        self.controller = controller
+        self.conversation_title = conversation_title
+        self.amount = amount
+        self.messages_lst = self.get_initial_messages()
+
     
-    def get_initial_messages(self, frame_area, controller, conversation_title, amount=5):
-        send_with_size(client_socket, f"FSTMSG|{amount}|{conversation_title}")
+    def get_initial_messages(self):
+        send_with_size(client_socket, f"FSTMSG|{self.amount}|{self.conversation_title}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
@@ -607,15 +612,15 @@ class HandleMessages:
                     msg_splt = msgdata.split(',')
                     messages.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
         
-        self.draw_messages(messages, frame_area, controller)
+        self.draw_messages(messages)
         return messages
 
-    def draw_messages(self, messages: list[classes.MessageVServer], frame_area, controller):
+    def draw_messages(self, messages: list[classes.MessageVServer]):
         for msg in messages:
-            MessageGUI(frame_area, controller, msg.content, msg.date_published, msg.sender_username)
+            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username)
     
-    def request_more(self, frame_area, controller, amount=5):
-        send_with_size(client_socket, f"MORMSG|{amount}")
+    def request_more(self):
+        send_with_size(client_socket, f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].content}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
@@ -624,10 +629,10 @@ class HandleMessages:
             if data[1] != "no_messages":
                 messages = []
                 for msgdata in data[1:]:
-                    conv_splt = msgdata.split(',')
-                    self.messages_lst.append(classes.MessageVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-                    messages.append(classes.MessageVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-                self.draw_messages(messages, frame_area, controller)
+                    msg_splt = msgdata.split(',')
+                    self.messages_lst.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                    messages.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                self.draw_messages(messages)
                 #self.messages_lst.append(messages)   
 
 

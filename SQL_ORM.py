@@ -266,13 +266,32 @@ class MessagesORM(object):
         else:
             return all_messages[0:amount]
         
-        #all_convs = self.get_table("Conversations")
-        #if len(all_convs) == 0:
-        #    return []
-        #if len(all_convs) < amount:
-        #    return all_convs[-len(all_convs):]
-        #else:
-        #    return all_convs[-amount:] 
+    def get_first_new_messages(self, conversation_title, last_recieved_msg_content, amount=1):
+        all_messages = self.cursor.execute(f'''SELECT * FROM Messages 
+                                           WHERE conversation_title = '{conversation_title}' ''').fetchall()
+        
+        # check from last to first in case 2 messages with the same content
+        all_messages_reversed = list(reversed(all_messages))
+        new_index = 0
+        for i, msgdata in enumerate(all_messages_reversed):
+            if msgdata[1] == last_recieved_msg_content:
+                # will give me the index of one after the one i'm looking at right now, but from the start not from the end
+                new_index = len(all_messages) - i
+                break
+        
+        if new_index > len(all_messages):
+            return [] 
+        
+        if len(all_messages) < new_index+amount:
+            return all_messages[new_index: len(all_messages)]
+        else:
+            return all_messages[new_index: new_index+amount]
+        
+        
+                
+        
+        
+            
     
 #---------------------------------
 
@@ -369,7 +388,7 @@ class ConversationsORM(object):
             return []
         
         return_lst = []
-        all_convs_reverse =list(reversed(all_convs))
+        all_convs_reverse = list(reversed(all_convs))
         
         for conv in all_convs_reverse:
             if not conv[1] in shown_titles:
