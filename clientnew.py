@@ -525,24 +525,35 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         # Top bar
         self.controller = controller
+        self.title = title
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
-        self.title = ctk.CTkLabel(self.top_bar, text=f"{title}", fg_color="purple", bg_color="purple", text_color="white")
-        self.title.pack(padx=12, pady=1.25)
+        self.title_label = ctk.CTkLabel(self.top_bar, text=f"{self.title}", fg_color="purple", bg_color="purple", text_color="white")
+        self.title_label.pack(padx=12, pady=1.25)
 
         # Sidebar with topics
         self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
         self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
         
         # new conversation button
-        new_message_icon_image = Image.open(fp=os.path.join("assets","plus icon 3.png"))
-        self.new_message_icon = ctk.CTkImage(light_image=new_message_icon_image, size=(40, 40))
-        self.new_message_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_message_icon, command=lambda: controller.show_page(CreateNewMessage, title=title))
-        self.new_message_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        #new_message_icon_image = Image.open(fp=os.path.join("assets","plus icon 3.png"))
+        #self.new_message_icon = ctk.CTkImage(light_image=new_message_icon_image, size=(40, 40))
+        #self.new_message_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_message_icon, command=lambda: controller.show_page(CreateNewMessage, title=title))
+        #self.new_message_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
         
         self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=self.go_back_smoothly)
         self.go_back_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        
+        
+        self.bottom_bar = ctk.CTkFrame(self, fg_color="white", height=100)
+        self.bottom_bar.pack_propagate(False)
+        self.bottom_bar.pack(side=ctk.BOTTOM, fill=ctk.X)
 
+        self.message_content_entry = ctk.CTkTextbox(self.bottom_bar, width=520, border_color="black", border_width=2)
+        self.message_content_entry.pack(padx=5, pady=2, side=ctk.LEFT)
+        
+        self.post_message_button = ctk.CTkButton(self.bottom_bar, fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", text="Post", command=lambda: self.post_message(self.message_content_entry.get("1.0", "end-1c")))
+        self.post_message_button.pack(padx=5, pady=2, side=ctk.RIGHT, fill=ctk.Y)
         # Add messages here
         # Main content area with messages
         self.content_area = ctk.CTkScrollableFrame(self)
@@ -566,31 +577,11 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.check_continuously.set(value=False)
         self.after_cancel(self.job)
         self.controller.show_page(HomePage_Connected)
-        
-
-class CreateNewMessage(ctk.CTkFrame):
-    def __init__(self, parent, controller, title):
-        global user_profile
-        super().__init__(parent)
-        
-        frame_title_label = ctk.CTkLabel(self, text="Add a message to this conversation!")
-        frame_title_label.pack(pady=4)
-        
-        message_content_label = ctk.CTkLabel(self, text="Content of your message:")
-        message_content_label.pack()
-        message_content_entry = ctk.CTkTextbox(self)
-        message_content_entry.pack()
-
-        add_message_button = ctk.CTkButton(self, text="Add a message", command=lambda: self.add_message(controller, message_content_entry.get("1.0", "end-1c"), title))
-        add_message_button.pack(pady=10)
-        
-        go_back_button = ctk.CTkButton(self, text="Return to conversation", command=lambda: controller.show_page(InsideConversationGUI, title=title))
-        go_back_button.pack(pady=10)
     
-    def add_message(self, controller, message_content, conversation_title):
+    def post_message(self, message_content):
         current_date = datetime.datetime.now()
         creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
-        send_with_size(client_socket, f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{conversation_title}")
+        send_with_size(client_socket, f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{self.title}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
             return
@@ -599,7 +590,41 @@ class CreateNewMessage(ctk.CTkFrame):
             if data[1] == "new_message_added":
 
                 messagebox.showinfo("Info", "added new message")
-                controller.show_page(InsideConversationGUI, title=conversation_title)
+                #self.controller.show_page(InsideConversationGUI, title=self)
+        
+
+#class CreateNewMessage(ctk.CTkFrame):
+#    def __init__(self, parent, controller, title):
+#        global user_profile
+#        super().__init__(parent)
+#        
+#        frame_title_label = ctk.CTkLabel(self, text="Add a message to this conversation!")
+#        frame_title_label.pack(pady=4)
+#        
+#        message_content_label = ctk.CTkLabel(self, text="Content of your message:")
+#        message_content_label.pack()
+#        message_content_entry = ctk.CTkTextbox(self)
+#        message_content_entry.pack()
+#
+#        add_message_button = ctk.CTkButton(self, text="Add a message", command=lambda: self.add_message(controller, message_content_entry.get("1.0", "end-1c"), title))
+#        add_message_button.pack(pady=10)
+#        
+#        go_back_button = ctk.CTkButton(self, text="Return to conversation", command=lambda: controller.show_page(InsideConversationGUI, title=title))
+#        go_back_button.pack(pady=10)
+#    
+#    def add_message(self, controller, message_content, conversation_title):
+#        current_date = datetime.datetime.now()
+#        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
+#        send_with_size(client_socket, f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{conversation_title}")
+#        data = recv_by_size(client_socket).decode().split('|')
+#        if len(data) <= 1:
+#            return
+#        
+#        if data[0] == "NEWMSG":
+#            if data[1] == "new_message_added":
+#
+#                messagebox.showinfo("Info", "added new message")
+#                controller.show_page(InsideConversationGUI, title=conversation_title)
 
 
 class HandleMessages:
