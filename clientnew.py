@@ -524,6 +524,7 @@ class InsideConversationGUI(ctk.CTkFrame):
         super().__init__(parent)
         
         # Top bar
+        self.controller = controller
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
         self.title = ctk.CTkLabel(self.top_bar, text=f"{title}", fg_color="purple", bg_color="purple", text_color="white")
@@ -539,7 +540,7 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.new_message_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_message_icon, command=lambda: controller.show_page(CreateNewMessage, title=title))
         self.new_message_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
         
-        self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=lambda: controller.show_page(HomePage_Connected))
+        self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=self.go_back_smoothly)
         self.go_back_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
 
         # Add messages here
@@ -549,10 +550,22 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         self.messages_handler = HandleMessages(self.content_area, controller, title, 5)
         
-        self.request_messages_button = ctk.CTkButton(self.content_area, text="More Messages", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.messages_handler.request_more())
-        self.request_messages_button.pack(side=ctk.BOTTOM)
+        #self.request_messages_button = ctk.CTkButton(self.content_area, text="More Messages", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.messages_handler.request_more())
+        #self.request_messages_button.pack(side=ctk.BOTTOM)
         
-        #self.after(1000, lambda: self.messages_handler.request_more(self.content_area, controller, 5))
+        self.check_continuously = ctk.BooleanVar(master=self, value=True)
+        self.job = self.after(3000, self.repeat_request)
+    
+    def repeat_request(self):
+        # basiclly continuing the interval from the start in an "endless" loop
+        if self.check_continuously.get():
+            self.messages_handler.request_more()
+            self.job = self.after(3000, self.repeat_request)
+    
+    def go_back_smoothly(self):
+        self.check_continuously.set(value=False)
+        self.after_cancel(self.job)
+        self.controller.show_page(HomePage_Connected)
         
 
 class CreateNewMessage(ctk.CTkFrame):
