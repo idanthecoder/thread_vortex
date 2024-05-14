@@ -173,7 +173,10 @@ class UsernamePasswordORM(object):
     def get_data_from_username(self, username):
         data = self.cursor.execute(f'''SELECT * FROM Users 
                                    WHERE username = '{username}' ''').fetchall()
-        return data[0]
+        
+        if len(data) == 0:
+            return []
+        return data
     
     #def get_id_from_username(self, username):
     #    data = self.cursor.execute(f'''SELECT user_id FROM Users 

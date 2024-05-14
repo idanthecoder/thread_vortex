@@ -87,13 +87,22 @@ class App(ctk.CTk):
         #self.frame.forget()
         
         if cont in self.saved_frames.keys():
-            if "profile_username" in kwargs:
+            if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
                 profile_username = kwargs.pop("profile_username")
-                if profile_username != self.saved_frames[cont].profile_username:
-                    self.frame = cont(self.container, self, profile_username)
+                class_return_to = kwargs.pop("class_return_to")
+                edited_profile = kwargs.pop("edited_profile")
+                
+                if profile_username != self.saved_frames[cont].profile_username or class_return_to != self.saved_frames[cont].class_return_to or edited_profile != self.saved_frames[cont].edited_profile:
+                    self.frame = cont(self.container, self, profile_username, class_return_to, edited_profile)
                     self.saved_frames[cont] = self.frame
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
+                
+                #if profile_username != self.saved_frames[cont].profile_username:
+                #    self.frame = cont(self.container, self, profile_username, class_return_to)
+                #    self.saved_frames[cont] = self.frame
+                #    self.frame.grid(row=0, column=0, sticky="nsew")
+                #    return
             elif "title" in kwargs:
                 title = kwargs.pop("title")
                 if title != self.saved_frames[cont].title:
@@ -105,8 +114,8 @@ class App(ctk.CTk):
             self.frame = self.saved_frames[cont]
             self.frame.tkraise()
         else:
-            if "profile_username" in kwargs:
-                self.frame = cont(self.container, self, kwargs.pop("profile_username"))
+            if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
+                self.frame = cont(self.container, self, kwargs.pop("profile_username"), kwargs.pop("class_return_to"), kwargs.pop("edited_profile"))
             elif "title" in kwargs:
                 self.frame = cont(self.container, self, kwargs.pop("title"))
             else:
@@ -271,7 +280,7 @@ class HomePage_Connected(ctk.CTkFrame):
         # view profile button
         view_profile_icon_image = Image.open(fp=os.path.join("assets","default user icon 2.png"))
         self.view_profile_icon = ctk.CTkImage(light_image=view_profile_icon_image, size=(40, 40))
-        self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username))
+        self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username, class_return_to=HomePage_Connected, edited_profile=False))
         self.view_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
 
         # Sidebar with topics
@@ -373,8 +382,8 @@ class EditProfilePage(ctk.CTkFrame):
         description_entry.insert('1.0', user_profile.description)
         description_entry.pack()
 
-        register_button = ctk.CTkButton(self, text="Commit changes", command=lambda: self.user_edit_profile_h(controller, password_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
-        register_button.pack(pady=10)
+        edit_profile_button = ctk.CTkButton(self, text="Commit changes", command=lambda: self.user_edit_profile_h(controller, password_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
+        edit_profile_button.pack(pady=10)
         
         go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
         go_back_button.pack(pady=10)
@@ -394,20 +403,25 @@ class EditProfilePage(ctk.CTkFrame):
         if data[0] == "EDTUSR":
             if data[1] == "edited_profile":
                 messagebox.showinfo("Info", "User profile updated successfuly")
-                controller.show_page(HomePage_Connected)
+                controller.show_page(ViewProfile, profile_username=user_profile.username, class_return_to=HomePage_Connected, edited_profile=True)
 
 
 class ViewProfile(ctk.CTkFrame):
-    def __init__(self, parent, controller, profile_username):
+    def __init__(self, parent, controller, profile_username, class_return_to, edited_profile):
         global user_profile
         super().__init__(parent)
         self.profile_username = profile_username
+        self.class_return_to = class_return_to
+        self.edited_profile = edited_profile
         
         if profile_username == user_profile.username:
             user_data: classes.User = classes.User.clone(user_profile)
         else:
             # i will deal with this later. in this case a will ask the server for the data of the user who has this username, the sever will take it from the database - send to client and it will be displayed.
-            pass
+            user_data = self.get_other_user_data()
+            if user_data == "no_user":
+                messagebox.showwarning("Warning", "No such user exists in the database")
+                controller.show_page(class_return_to)
         
         name_label = ctk.CTkLabel(self, text=f"The info page of \"{user_data.username}\"")
         name_label.pack(pady=2)
@@ -433,8 +447,21 @@ class ViewProfile(ctk.CTkFrame):
         description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
         description_label.pack()
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(class_return_to))
         go_back_button.pack(pady=10)
+    
+    def get_other_user_data(self):
+        send_with_size(client_socket, f"GETUSR|{self.profile_username}")
+        data = recv_by_size(client_socket).decode().split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "GETUSR":
+            if data[1] != "no_user":
+                user_data = classes.User(data[1], None, data[2], int(data[3]), data[4], data[5], data[6], data[7], data[8])
+                return user_data
+            else:
+                return "no_user"
              
 
 class CreateNewConversation(ctk.CTkFrame):
@@ -484,7 +511,7 @@ class CreateNewConversation(ctk.CTkFrame):
                 #controller.show_page(HomePage_Connected)
                 # for now you return to main screen. later you will be in your conversation.
                 messagebox.showinfo("Info", "Created new conversation!")
-                controller.show_page(HomePage_Connected)
+                controller.show_page(InsideConversationGUI, title=conversation_title)
             elif data[1] == "title_issue":
                 #messagebox.showinfo("Info", "Created new conversation!")
                 messagebox.showwarning("Warning", "This conversation already exists")
@@ -495,8 +522,10 @@ class ConversationGUI(ctk.CTkFrame):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
-        self.user_label = ctk.CTkLabel(self, text=username)
-        self.user_label.pack(side=ctk.LEFT, padx=10)
+        #self.user_label = ctk.CTkLabel(self, text=username)
+        #self.user_label.pack(side=ctk.LEFT, padx=10)
+        self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=HomePage_Connected, edited_profile=False))
+        self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
         #self.title_label = ctk.CTkLabel(self, text=title)
@@ -741,12 +770,14 @@ class HandleMessages:
 
 
 class MessageGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, content, username, date):
+    def __init__(self, parent, controller, content, date, username):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
-        self.user_label = ctk.CTkLabel(self, text=username)
-        self.user_label.pack(side=ctk.LEFT, padx=10)
+        #self.user_label = ctk.CTkLabel(self, text=username)
+        #self.user_label.pack(side=ctk.LEFT, padx=10)
+        self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=InsideConversationGUI, edited_profile=False))
+        self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
         self.content_label = ctk.CTkLabel(self, text=content)

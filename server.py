@@ -178,7 +178,6 @@ class TCPServer:
                     #self.clients_conversations[client_socket] = self.apart_titles_from_lst(first_messages)
                 
                 elif command == "MORMSG":
-                    # work on this
                     new_first_messages = messages_db.get_first_new_messages(fields[1], fields[2], int(fields[0]))
 
                     if new_first_messages == []:
@@ -191,6 +190,15 @@ class TCPServer:
                                 to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}"
                             else:
                                 to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}|"
+                
+                elif command == "GETUSR":
+                    data_users = users_db.get_data_from_username(fields[0])
+                    if len(data_users) == []:
+                        to_send = "GETUSR|no_user"
+                    else:
+                        user_data = data_users[0]
+                        to_send = f"GETUSR|{user_data[1]}|{user_data[4]}|{user_data[5]}|{user_data[6]}|{user_data[7]}|{user_data[8]}|{user_data[9]}|{user_data[10]}"
+                    
                         
 
                     
