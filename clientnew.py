@@ -13,6 +13,45 @@ import classes
 from tkinter import messagebox
 
 
+#class App(ctk.CTk):
+#    def __init__(self):
+#        super().__init__()
+#        self.title("ThreadVortex")
+#        self.geometry("800x600")
+#        
+#        self.iconpath = ImageTk.PhotoImage(file=os.path.join("assets","Thread Vortex no text logo.png"))
+#        self.wm_iconbitmap()
+#        self.iconphoto(False, self.iconpath)
+#        
+#        self.container = ctk.CTkFrame(self)
+#        self.container.pack(side="top", fill="both", expand=True)
+#        self.container.grid_rowconfigure(0, weight=1)
+#        self.container.grid_columnconfigure(0, weight=1)
+#
+#        #self.frames = {}
+#        #for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
+#        #    frame = F(self.container, self)
+#        #    self.frames[F] = frame
+#        #    frame.grid(row=0, column=0, sticky="nsew")
+#
+#        #self.show_page(HomePage_Unconnected)
+#        self.frame = OpeningScreen(self.container, self)
+#        self.frame.grid(row=0, column=0, sticky="nsew")
+#
+#    def show_page(self, cont, **kwargs): # possible kwargs currently are: profile_username=user_profile.username, title="title"
+#        #frame = self.frames[cont]
+#        #frame.tkraise()
+#        
+#        # use forget on the current used class frame and grid the new class frame i want to use
+#        self.frame.forget()
+#        if "profile_username" in kwargs:
+#            self.frame = cont(self.container, self, kwargs.pop("profile_username"))
+#        elif "title" in kwargs:
+#            self.frame = cont(self.container, self, kwargs.pop("title"))
+#        else:
+#            self.frame = cont(self.container, self)
+#        self.frame.grid(row=0, column=0, sticky="nsew")
+
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -35,7 +74,9 @@ class App(ctk.CTk):
         #    frame.grid(row=0, column=0, sticky="nsew")
 
         #self.show_page(HomePage_Unconnected)
+        self.saved_frames = {}
         self.frame = OpeningScreen(self.container, self)
+        self.saved_frames[OpeningScreen] = self.frame
         self.frame.grid(row=0, column=0, sticky="nsew")
 
     def show_page(self, cont, **kwargs): # possible kwargs currently are: profile_username=user_profile.username, title="title"
@@ -43,14 +84,36 @@ class App(ctk.CTk):
         #frame.tkraise()
         
         # use forget on the current used class frame and grid the new class frame i want to use
-        self.frame.forget()
-        if "profile_username" in kwargs:
-            self.frame = cont(self.container, self, kwargs.pop("profile_username"))
-        elif "title" in kwargs:
-            self.frame = cont(self.container, self, kwargs.pop("title"))
+        #self.frame.forget()
+        
+        if cont in self.saved_frames.keys():
+            if "profile_username" in kwargs:
+                profile_username = kwargs.pop("profile_username")
+                if profile_username != self.saved_frames[cont].profile_username:
+                    self.frame = cont(self.container, self, profile_username)
+                    self.saved_frames[cont] = self.frame
+                    self.frame.grid(row=0, column=0, sticky="nsew")
+                    return
+            elif "title" in kwargs:
+                title = kwargs.pop("title")
+                if title != self.saved_frames[cont].title:
+                    self.frame = cont(self.container, self, title)
+                    self.saved_frames[cont] = self.frame
+                    self.frame.grid(row=0, column=0, sticky="nsew")
+                    return
+            
+            self.frame = self.saved_frames[cont]
+            self.frame.tkraise()
         else:
-            self.frame = cont(self.container, self)
-        self.frame.grid(row=0, column=0, sticky="nsew")
+            if "profile_username" in kwargs:
+                self.frame = cont(self.container, self, kwargs.pop("profile_username"))
+            elif "title" in kwargs:
+                self.frame = cont(self.container, self, kwargs.pop("title"))
+            else:
+                self.frame = cont(self.container, self)
+            
+            self.saved_frames[cont] = self.frame
+            self.frame.grid(row=0, column=0, sticky="nsew")
         
 
 class OpeningScreen(ctk.CTkFrame):
@@ -338,7 +401,7 @@ class ViewProfile(ctk.CTkFrame):
     def __init__(self, parent, controller, profile_username):
         global user_profile
         super().__init__(parent)
-        
+        self.profile_username = profile_username
         
         if profile_username == user_profile.username:
             user_data: classes.User = classes.User.clone(user_profile)
@@ -581,6 +644,9 @@ class InsideConversationGUI(ctk.CTkFrame):
     def post_message(self, message_content):
         current_date = datetime.datetime.now()
         creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
+        
+        self.message_content_entry.delete("1.0","end")
+        
         send_with_size(client_socket, f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{self.title}")
         data = recv_by_size(client_socket).decode().split('|')
         if len(data) <= 1:
