@@ -4,9 +4,6 @@ import pickle
 import hash_handler
 import classes
 
-# https://docs.python.org/2/library/sqlite3.html
-# https://www.youtube.com/watch?v=U7nfe4adDw8
-
 
 __author__ = "Idan"
 
@@ -177,11 +174,6 @@ class UsernamePasswordORM(object):
         if len(data) == 0:
             return []
         return data
-    
-    #def get_id_from_username(self, username):
-    #    data = self.cursor.execute(f'''SELECT user_id FROM Users 
-    #                               WHERE username = '{username}' ''').fetchall()
-    #    return data[0]
 
 #---------------------------------
 
@@ -290,12 +282,6 @@ class MessagesORM(object):
         else:
             return all_messages[new_index: new_index+amount]
         
-        
-                
-        
-        
-            
-    
 #---------------------------------
 
 class ConversationsORM(object):
@@ -369,11 +355,6 @@ class ConversationsORM(object):
 
     def get_specific(self, conversation_id, subject):
         return self.cursor.execute(f'''SELECT {subject} FROM Conversations WHERE conversation_id = {conversation_id}''').fetchall()
-
-    #def get_id_from_title(self, title):
-    #    data = self.cursor.execute(f'''SELECT conversation_id FROM Conversations 
-    #                               WHERE title = '{title}' ''').fetchall()
-    #    return data[0]
 
     def get_last_conversations(self, amount=1):
         all_convs = self.get_table("Conversations")
