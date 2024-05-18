@@ -131,9 +131,9 @@ class TCPServer:
                         
                             for i, conv in enumerate(new_last_convs):
                                 if i == len(new_last_convs)-1:
-                                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
+                                    to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}"
                                 else:
-                                    to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
+                                    to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}|"
                             
                             shown_titles = shown_titles + self.apart_titles_from_lst(new_last_convs)
                             self.clients_conversations[client_socket] = shown_titles
@@ -150,9 +150,9 @@ class TCPServer:
                         
                         for i, conv in enumerate(last_conversations):
                             if i == len(last_conversations)-1:
-                                to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}"
+                                to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}"
                             else:
-                                to_send += f"{conv[1]},{conv[2]},{conv[3]},{conv[4]}|"
+                                to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}|"
                         
                     self.clients_conversations[client_socket] = self.apart_titles_from_lst(last_conversations)
                 
@@ -171,9 +171,9 @@ class TCPServer:
                         
                         for i, msg in enumerate(first_messages):
                             if i == len(first_messages)-1:
-                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}"
+                                to_send += f"{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}"
                             else:
-                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}|"
+                                to_send += f"{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}|"
                         
                     #self.clients_conversations[client_socket] = self.apart_titles_from_lst(first_messages)
                 
@@ -187,9 +187,9 @@ class TCPServer:
                         
                         for i, msg in enumerate(new_first_messages):
                             if i == len(new_first_messages)-1:
-                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}"
+                                to_send += f"{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}"
                             else:
-                                to_send += f"{msg[1]},{msg[2]},{msg[3]},{msg[4]}|"
+                                to_send += f"{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}|"
                 
                 elif command == "GETUSR":
                     data_users = users_db.get_data_from_username(fields[0])

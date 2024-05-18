@@ -580,7 +580,7 @@ class HandleConversations:
             if data[1] != "no_conversations":
                 conversations = []
                 for convdata in data[1:]:
-                    conv_splt = convdata.split(',')
+                    conv_splt = convdata.split('_')
                     conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
         
                 self.draw_conversations(conversations, frame_area, controller)
@@ -600,7 +600,7 @@ class HandleConversations:
             if data[1] != "no_conversations":
                 conversations = []
                 for convdata in data[1:]:
-                    conv_splt = convdata.split(',')
+                    conv_splt = convdata.split('_')
                     self.conversations_lst.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                     conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                 self.draw_conversations(conversations, frame_area, controller)
@@ -742,7 +742,7 @@ class HandleMessages:
             if data[1] != "no_messages":
                 messages = []
                 for msgdata in data[1:]:
-                    msg_splt = msgdata.split(',')
+                    msg_splt = msgdata.split('_')
                     messages.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
         
         self.draw_messages(messages)
@@ -762,7 +762,7 @@ class HandleMessages:
             if data[1] != "no_messages":
                 messages = []
                 for msgdata in data[1:]:
-                    msg_splt = msgdata.split(',')
+                    msg_splt = msgdata.split('_')
                     self.messages_lst.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
                     messages.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
                 self.draw_messages(messages)
