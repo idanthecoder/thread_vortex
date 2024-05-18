@@ -72,7 +72,7 @@ class TCPServer:
                         password = hash_handler.hash_password(pepper + salt + fields[1])
                         user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8]) # fields[7] should be datetime that I ran when the user sent the information (date_creation) and not an input of the user
                         users_db.insert_user(user, salt)
-                        to_send = f"REGUSR|new_user|{user.username}|{user.password}|{user.mail}|{user.age}|{user.gender}|{user.country}|{user.occupation}|{user.date_creation}|{user.description}"
+                        to_send = f"REGUSR|new_user"
                     else:
                         if register_status[0] == "name_mail_issue":
                             to_send = f"REGUSR|name_mail_taken"
@@ -81,7 +81,6 @@ class TCPServer:
                         elif register_status[0] == "mail_issue":
                             to_send = f"REGUSR|mail_taken"
                 elif command == "LOGUSR":
-                    users_db.print_table("Users")
                     user_data = users_db.enter_account(fields[0], fields[1], fields[2])
 
                     if user_data:
@@ -89,27 +88,19 @@ class TCPServer:
                     else:
                         to_send = f"LOGUSR|failed_identification"
                 elif command == "EDTUSR":
-                    #salt = hash_handler.gen_salt()
-                    #pepper = hash_handler.get_global_pepper()
-                    #password = hash_handler.hash_password(pepper + salt + fields[1])
                     user = classes.User(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
                     users_db.edit_user_data(user)
                     to_send = "EDTUSR|edited_profile"
-                    users_db.print_table("Users")
                 elif command == "NEWCNV":
                     # create a new conversation including the first message within it
                     
                     # {conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}
                     
-                    #posted_user_data = users_db.get_data_from_username(fields[4])
-                    #posted_user_data[3] is salt
-                    #posted_user = classes.User(posted_user_data[1], posted_user_data[2], posted_user_data[4], posted_user_data[5], posted_user_data[6], posted_user_data[7], posted_user_data[8], posted_user_data[9], posted_user_data[10])
                     conversation_status = conversations_db.conversation_checks(fields[0])
                     if not conversation_status:
                         conversation = classes.ConversationVServer(fields[0], fields[4], fields[3], fields[2])
                         conversations_db.insert_conversation(conversation)
                         # there can't be two titles with the same name!!
-                        #conversation_id = conversations_db.get_id_from_title(fields[0])
                         
                         message = classes.MessageVServer(fields[1], fields[3], fields[4], fields[0])
                         messages_db.insert_message(message)
@@ -118,7 +109,6 @@ class TCPServer:
                     else:
                         if conversation_status[0] == "title_exists":
                             to_send = "NEWCNV|title_issue"
-                    # not done yet. need to add a check for if a conversation with the same title already exists. and maybe let the user enter the conversation he has created?
 
                 elif command == "MORCNV":
                     if client_socket in self.clients_conversations.keys():
@@ -208,8 +198,8 @@ class TCPServer:
                 
                 
                 send_with_size(client_socket, to_send)
-        #except Exception as e:
-        #    print(f"Error: {e}")
+        except Exception as e:
+            print(f"Error: {e}")
         finally:
             self.clients.remove(client_socket)
             client_socket.close()

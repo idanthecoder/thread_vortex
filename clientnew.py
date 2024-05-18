@@ -13,45 +13,6 @@ import classes
 from tkinter import messagebox
 
 
-#class App(ctk.CTk):
-#    def __init__(self):
-#        super().__init__()
-#        self.title("ThreadVortex")
-#        self.geometry("800x600")
-#        
-#        self.iconpath = ImageTk.PhotoImage(file=os.path.join("assets","Thread Vortex no text logo.png"))
-#        self.wm_iconbitmap()
-#        self.iconphoto(False, self.iconpath)
-#        
-#        self.container = ctk.CTkFrame(self)
-#        self.container.pack(side="top", fill="both", expand=True)
-#        self.container.grid_rowconfigure(0, weight=1)
-#        self.container.grid_columnconfigure(0, weight=1)
-#
-#        #self.frames = {}
-#        #for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
-#        #    frame = F(self.container, self)
-#        #    self.frames[F] = frame
-#        #    frame.grid(row=0, column=0, sticky="nsew")
-#
-#        #self.show_page(HomePage_Unconnected)
-#        self.frame = OpeningScreen(self.container, self)
-#        self.frame.grid(row=0, column=0, sticky="nsew")
-#
-#    def show_page(self, cont, **kwargs): # possible kwargs currently are: profile_username=user_profile.username, title="title"
-#        #frame = self.frames[cont]
-#        #frame.tkraise()
-#        
-#        # use forget on the current used class frame and grid the new class frame i want to use
-#        self.frame.forget()
-#        if "profile_username" in kwargs:
-#            self.frame = cont(self.container, self, kwargs.pop("profile_username"))
-#        elif "title" in kwargs:
-#            self.frame = cont(self.container, self, kwargs.pop("title"))
-#        else:
-#            self.frame = cont(self.container, self)
-#        self.frame.grid(row=0, column=0, sticky="nsew")
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -67,25 +28,12 @@ class App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
-        #self.frames = {}
-        #for F in (HomePage_Unconnected, HomePage_Connected, RegisterPage, LoginPage, EditProfilePage):
-        #    frame = F(self.container, self)
-        #    self.frames[F] = frame
-        #    frame.grid(row=0, column=0, sticky="nsew")
-
-        #self.show_page(HomePage_Unconnected)
         self.saved_frames = {}
         self.frame = OpeningScreen(self.container, self)
         self.saved_frames[OpeningScreen] = self.frame
         self.frame.grid(row=0, column=0, sticky="nsew")
 
-    def show_page(self, cont, **kwargs): # possible kwargs currently are: profile_username=user_profile.username, title="title"
-        #frame = self.frames[cont]
-        #frame.tkraise()
-        
-        # use forget on the current used class frame and grid the new class frame i want to use
-        #self.frame.forget()
-        
+    def show_page(self, cont, **kwargs): # possible kwargs currently are for example: profile_username=user_profile.username, title="title" ...
         if cont in self.saved_frames.keys():
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
                 profile_username = kwargs.pop("profile_username")
@@ -98,11 +46,6 @@ class App(ctk.CTk):
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
                 
-                #if profile_username != self.saved_frames[cont].profile_username:
-                #    self.frame = cont(self.container, self, profile_username, class_return_to)
-                #    self.saved_frames[cont] = self.frame
-                #    self.frame.grid(row=0, column=0, sticky="nsew")
-                #    return
             elif "title" in kwargs:
                 title = kwargs.pop("title")
                 if title != self.saved_frames[cont].title:
@@ -304,39 +247,12 @@ class HomePage_Connected(ctk.CTkFrame):
         
         self.conversation_handler = HandleConversations(self.content_area, controller, 5)
         
-        #request_conversations(5, self.content_area)
-        #
         self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, controller, 5))
         self.request_conversations_button.pack(side=ctk.BOTTOM)
-        
-        #self.messages = [
-        #    {"user": "User1", "date": "22.2.24", "content": "What does the 'yield' keyword do in Python?"},
-        #    {"user": "User2", "date": "20.2.24", "content": "🤔 IF YOU MAKE THE UNIVERSE A BETTER PLACE..."},
-        #    # Add more messages here...
-        #]
-        #for message in self.messages:
-        #    Message(self.content_area, message["user"], message["date"], message["content"])
     
     def disconnect(self, controller):
         if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
             controller.show_page(OpeningScreen)
-
-
-#def request_conversations(amount,  frame_area):
-#    send_with_size(client_socket, f"GETCNV|{amount}")
-#    data = recv_by_size(client_socket).decode().split('|')
-#    if len(data) <= 1:
-#        return
-#    
-#    if data[0] == "GETCNV":
-#        if data[1] != "no_conversations":
-#            conversations = []
-#            for i, convdata in enumerate(data[2:]):
-#                conv_splt = convdata.split(',')
-#                conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-#            
-#            for i, conv in enumerate(conversations):
-#                ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
                 
                 
 class EditProfilePage(ctk.CTkFrame):
@@ -507,9 +423,6 @@ class CreateNewConversation(ctk.CTkFrame):
         
         if data[0] == "NEWCNV":
             if data[1] == "new_conversation_added":
-                #user_profile = classes.User(data[2], None, data[3], int(data[4]), data[5], data[6], data[7], data[8], data[9])
-                #controller.show_page(HomePage_Connected)
-                # for now you return to main screen. later you will be in your conversation.
                 messagebox.showinfo("Info", "Created new conversation!")
                 controller.show_page(InsideConversationGUI, title=conversation_title)
             elif data[1] == "title_issue":
@@ -522,47 +435,12 @@ class ConversationGUI(ctk.CTkFrame):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
-        #self.user_label = ctk.CTkLabel(self, text=username)
-        #self.user_label.pack(side=ctk.LEFT, padx=10)
         self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=HomePage_Connected, edited_profile=False))
         self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
-        #self.title_label = ctk.CTkLabel(self, text=title)
-        #self.title_label.pack(side=ctk.TOP, pady=35)
         self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(InsideConversationGUI, title=title))
         self.title_button.pack(side=ctk.TOP, pady=35)
-
-
-#def get_conversations():
-#    send_with_size(client_socket, f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
-#    data = recv_by_size(client_socket).decode().split('|')
-#    if len(data) <= 1:
-#        return
-#    
-#    if data[0] == "EDTUSR":
-#        if data[1] == "edited_profile":
-#            messagebox.showinfo("Info", "User profile updated successfuly")
-#            controller.show_page(HomePage_Connected)
-
-#def get_initial_conversations(amount):
-#    send_with_size(client_socket, f"GETCNV|{amount}")
-#    data = recv_by_size(client_socket).decode().split('|')
-#    if len(data) <= 1:
-#        return
-#    
-#    if data[0] == "GETCNV":
-#        if data[1] != "no_conversations":
-#            conversations = []
-#            for i, convdata in enumerate(data[2:]):
-#                conv_splt = convdata.split(',')
-#                conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-#    return conversations
-
-
-#def draw_conversation(conversations: list[classes.ConversationVServer], frame_area):
-#    for i, conv in enumerate(conversations):
-#        ConversationGUI(frame_area, conv.title, conv.creator_username, conv.creation_date)
         
 
 class HandleConversations:
@@ -604,10 +482,7 @@ class HandleConversations:
                     self.conversations_lst.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                     conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                 self.draw_conversations(conversations, frame_area, controller)
-                #self.conversations_lst.append(conversations) 
-
-
-#-------------new stuff - exprtimental-------------
+                 
 
 
 class InsideConversationGUI(ctk.CTkFrame):
@@ -626,12 +501,6 @@ class InsideConversationGUI(ctk.CTkFrame):
         # Sidebar with topics
         self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
         self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
-        
-        # new conversation button
-        #new_message_icon_image = Image.open(fp=os.path.join("assets","plus icon 3.png"))
-        #self.new_message_icon = ctk.CTkImage(light_image=new_message_icon_image, size=(40, 40))
-        #self.new_message_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_message_icon, command=lambda: controller.show_page(CreateNewMessage, title=title))
-        #self.new_message_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
         
         self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=self.go_back_smoothly)
         self.go_back_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
@@ -652,9 +521,6 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
         self.messages_handler = HandleMessages(self.content_area, controller, title, 5)
-        
-        #self.request_messages_button = ctk.CTkButton(self.content_area, text="More Messages", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.messages_handler.request_more())
-        #self.request_messages_button.pack(side=ctk.BOTTOM)
         
         self.check_continuously = ctk.BooleanVar(master=self, value=True)
         self.job = self.after(3000, self.repeat_request)
@@ -684,42 +550,9 @@ class InsideConversationGUI(ctk.CTkFrame):
         if data[0] == "NEWMSG":
             if data[1] == "new_message_added":
 
-                messagebox.showinfo("Info", "added new message")
-                #self.controller.show_page(InsideConversationGUI, title=self)
-        
+                messagebox.showinfo("Info", "added new message")        
 
-#class CreateNewMessage(ctk.CTkFrame):
-#    def __init__(self, parent, controller, title):
-#        global user_profile
-#        super().__init__(parent)
-#        
-#        frame_title_label = ctk.CTkLabel(self, text="Add a message to this conversation!")
-#        frame_title_label.pack(pady=4)
-#        
-#        message_content_label = ctk.CTkLabel(self, text="Content of your message:")
-#        message_content_label.pack()
-#        message_content_entry = ctk.CTkTextbox(self)
-#        message_content_entry.pack()
-#
-#        add_message_button = ctk.CTkButton(self, text="Add a message", command=lambda: self.add_message(controller, message_content_entry.get("1.0", "end-1c"), title))
-#        add_message_button.pack(pady=10)
-#        
-#        go_back_button = ctk.CTkButton(self, text="Return to conversation", command=lambda: controller.show_page(InsideConversationGUI, title=title))
-#        go_back_button.pack(pady=10)
-#    
-#    def add_message(self, controller, message_content, conversation_title):
-#        current_date = datetime.datetime.now()
-#        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
-#        send_with_size(client_socket, f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{conversation_title}")
-#        data = recv_by_size(client_socket).decode().split('|')
-#        if len(data) <= 1:
-#            return
-#        
-#        if data[0] == "NEWMSG":
-#            if data[1] == "new_message_added":
-#
-#                messagebox.showinfo("Info", "added new message")
-#                controller.show_page(InsideConversationGUI, title=conversation_title)
+
 
 
 class HandleMessages:
