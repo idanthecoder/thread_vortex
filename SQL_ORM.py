@@ -259,10 +259,11 @@ class MessagesORM(object):
             return all_messages[0:amount]
         
     def get_first_new_messages(self, conversation_title, last_recieved_msg_content, amount=1):
+        # get all messages of the conversation
         all_messages = self.cursor.execute(f'''SELECT * FROM Messages 
                                            WHERE conversation_title = ? ''', (conversation_title,)).fetchall()
         
-        # check from last to first in case 2 messages with the same content
+        # check from last to first in case of 2 messages with the same content
         all_messages_reversed = list(reversed(all_messages))
         new_index = 0
         for i, msgdata in enumerate(all_messages_reversed):
@@ -271,11 +272,14 @@ class MessagesORM(object):
                 new_index = len(all_messages) - i
                 break
         
+        # if there aren't any new messages
         if new_index > len(all_messages):
             return [] 
         
+        # if there are new messages, but not the requested amount
         if len(all_messages) < new_index+amount:
             return all_messages[new_index: len(all_messages)]
+        # if there are new messages and can return the requested amount
         else:
             return all_messages[new_index: new_index+amount]
         

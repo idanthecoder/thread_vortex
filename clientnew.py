@@ -33,38 +33,52 @@ class App(ctk.CTk):
         self.saved_frames[OpeningScreen] = self.frame
         self.frame.grid(row=0, column=0, sticky="nsew")
 
-    def show_page(self, cont, **kwargs): # possible kwargs currently are for example: profile_username=user_profile.username, title="title" ...
-        if cont in self.saved_frames.keys():
+    def show_page(self, class_to_show, **kwargs):
+        """
+        Process: 
+        Parameters: class_to_show - the class to switch to,
+        **kwargs - possible kwargs currently are for example: profile_username="username", title="title", class_return_to=class, edited_profile=True/False
+        Returns: Nothing.
+        """
+        
+        # if the requested class is already saved in the dictinary I want to use it in the state it was last left in
+        if class_to_show in self.saved_frames.keys():
+            # if those parameters are in kwargs then this relates to the ViewProfile class
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
                 profile_username = kwargs.pop("profile_username")
                 class_return_to = kwargs.pop("class_return_to")
                 edited_profile = kwargs.pop("edited_profile")
                 
-                if profile_username != self.saved_frames[cont].profile_username or class_return_to != self.saved_frames[cont].class_return_to or edited_profile != self.saved_frames[cont].edited_profile:
-                    self.frame = cont(self.container, self, profile_username, class_return_to, edited_profile)
-                    self.saved_frames[cont] = self.frame
+                # if at least one of the values is new then reset the value for this class and grid it
+                if profile_username != self.saved_frames[class_to_show].profile_username or class_return_to != self.saved_frames[class_to_show].class_return_to or edited_profile != self.saved_frames[class_to_show].edited_profile:
+                    self.frame = class_to_show(self.container, self, profile_username, class_return_to, edited_profile)
+                    self.saved_frames[class_to_show] = self.frame
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
-                
+            
+            # if this parameter is in kwargs then this relates to the InsideConversationGUI class
             elif "title" in kwargs:
                 title = kwargs.pop("title")
-                if title != self.saved_frames[cont].title:
-                    self.frame = cont(self.container, self, title)
-                    self.saved_frames[cont] = self.frame
+                # if the value is new then it is a different conversation. Rreset the value for this class and grid it
+                if title != self.saved_frames[class_to_show].title:
+                    self.frame = class_to_show(self.container, self, title)
+                    self.saved_frames[class_to_show] = self.frame
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
             
-            self.frame = self.saved_frames[cont]
+            # if no kwargs are given or if their values are the same then user tkraise to switch frames
+            self.frame = self.saved_frames[class_to_show]
             self.frame.tkraise()
         else:
+            # if it is a totally new class then create an instance of it and grid it
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
-                self.frame = cont(self.container, self, kwargs.pop("profile_username"), kwargs.pop("class_return_to"), kwargs.pop("edited_profile"))
+                self.frame = class_to_show(self.container, self, kwargs.pop("profile_username"), kwargs.pop("class_return_to"), kwargs.pop("edited_profile"))
             elif "title" in kwargs:
-                self.frame = cont(self.container, self, kwargs.pop("title"))
+                self.frame = class_to_show(self.container, self, kwargs.pop("title"))
             else:
-                self.frame = cont(self.container, self)
+                self.frame = class_to_show(self.container, self)
             
-            self.saved_frames[cont] = self.frame
+            self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
         
 

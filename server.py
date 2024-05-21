@@ -111,11 +111,17 @@ class TCPServer:
                             to_send = "NEWCNV|title_issue"
 
                 elif command == "MORCNV":
+                    # if current client already exists in the dictionary then he has already recieved messages
                     if client_socket in self.clients_conversations.keys():
+                        # get the list of all titles the user has received so far
                         shown_titles = self.clients_conversations[client_socket]
+                        # run command to get new conversations that aren't in the list
                         new_last_convs = conversations_db.get_last_new_conversations(shown_titles, int(fields[0]))
+                        
+                        
                         if len(new_last_convs) == 0:
                             to_send = "MORCNV|no_conversations"
+                        # if there are new conversations then send them to the client
                         else:
                             to_send = "MORCNV|"
                         
