@@ -198,7 +198,7 @@ class LoginPage(ctk.CTkFrame):
         
         if data[0] == "LOGUSR":
             if data[1] == "correct_identification":
-                user_profile = classes.User(data[2], None, data[3], int(data[4]), data[5], data[6], data[7], data[8], data[9])
+                user_profile = classes.User(data[2], None, data[3], data[4], data[5], data[6], data[7], data[8], data[9])
                 controller.show_page(HomePage_Connected)
 
 
@@ -307,7 +307,7 @@ class EditProfilePage(ctk.CTkFrame):
     def user_edit_profile_h(self, controller, password, age, gender, country, occupation, description):
         global user_profile
         
-        user_profile.edit_profile(int(age), gender, country, occupation, description)
+        user_profile.edit_profile(age, gender, country, occupation, description)
         self.user_edit_profile(controller, user_profile, password)
     
     def user_edit_profile(self, controller, user_profile: classes.User, password):
@@ -374,7 +374,7 @@ class ViewProfile(ctk.CTkFrame):
         
         if data[0] == "GETUSR":
             if data[1] != "no_user":
-                user_data = classes.User(data[1], None, data[2], int(data[3]), data[4], data[5], data[6], data[7], data[8])
+                user_data = classes.User(data[1], None, data[2], data[3], data[4], data[5], data[6], data[7], data[8])
                 return user_data
             else:
                 return "no_user"
@@ -446,7 +446,7 @@ class ConversationGUI(ctk.CTkFrame):
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
     def __init__(self, frame_area, controller, amount=5) -> None:
-        self.conversations_lst: list[classes.ConversationVServer] = self.get_initial_conversations(frame_area, controller, amount)
+        self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations(frame_area, controller, amount)
     
     def get_initial_conversations(self, frame_area, controller, amount=5):
         send_with_size(client_socket, f"FSTCNV|{amount}")
@@ -459,7 +459,7 @@ class HandleConversations:
                 conversations = []
                 for convdata in data[1:]:
                     conv_splt = convdata.split('_')
-                    conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                    conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
         
                 self.draw_conversations(conversations, frame_area, controller)
         return conversations
@@ -479,8 +479,8 @@ class HandleConversations:
                 conversations = []
                 for convdata in data[1:]:
                     conv_splt = convdata.split('_')
-                    self.conversations_lst.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-                    conversations.append(classes.ConversationVServer(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                    self.conversations_lst.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                    conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                 self.draw_conversations(conversations, frame_area, controller)
                  
 
@@ -576,12 +576,12 @@ class HandleMessages:
                 messages = []
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    messages.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                    messages.append(classes.MessageStruct(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
         
         self.draw_messages(messages)
         return messages
 
-    def draw_messages(self, messages: list[classes.MessageVServer]):
+    def draw_messages(self, messages: list[classes.MessageStruct]):
         for msg in messages:
             MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username)
     
@@ -596,8 +596,8 @@ class HandleMessages:
                 messages = []
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    self.messages_lst.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
-                    messages.append(classes.MessageVServer(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                    self.messages_lst.append(classes.MessageStruct(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                    messages.append(classes.MessageStruct(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
                 self.draw_messages(messages)
                 #self.messages_lst.append(messages)   
 

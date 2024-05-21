@@ -1,6 +1,4 @@
 import sqlite3
-
-import pickle
 import hash_handler
 import classes
 
@@ -86,7 +84,6 @@ class UsernamePasswordORM(object):
     def get_specific(self, user_id, subject):
         return self.cursor.execute(f'''SELECT {subject} FROM Users WHERE user_id = {user_id}''').fetchall()
     
-    
     def delete_user_by_name(self, username):
         self.cursor.execute(f'''DELETE FROM Users WHERE username = '{username}' ''')
         self.commit()
@@ -106,8 +103,8 @@ class UsernamePasswordORM(object):
         
         # change the password and the hash
         self.cursor.execute(f'''UPDATE Users
-                            SET password = '{hashed_password}', salt = '{salt}'
-                            WHERE username = '{username}' ''')
+                            SET password = ?, salt = ?
+                            WHERE username = ? ''', (hashed_password, salt, username))
         self.commit()
 
     
@@ -120,9 +117,9 @@ class UsernamePasswordORM(object):
         
         # search for the existence of the name and mail
         name_in_data = (self.cursor.execute(f'''SELECT * FROM Users
-                                   WHERE username = '{username}' ''').fetchall())
+                                   WHERE username = ? ''', (username,)).fetchall())
         mail_in_data = (self.cursor.execute(f'''SELECT * FROM Users
-                                   WHERE mail = '{mail}' ''').fetchall())
+                                   WHERE mail = ? ''', (mail,)).fetchall())
         
         # return if both mail and name are unavailable or just one of them
         if name_in_data and mail_in_data:
@@ -144,7 +141,7 @@ class UsernamePasswordORM(object):
         """
         
         salt = (self.cursor.execute(f'''SELECT salt FROM Users
-                                   WHERE username = '{username}' ''').fetchall())
+                                   WHERE username = ? ''', (username,)).fetchall())
         
         # if no salt was found it means that there is no such user, as it has no data which is necessarily saved, return []
         if not salt:
@@ -155,7 +152,7 @@ class UsernamePasswordORM(object):
         hashed_password = hash_handler.hash_password(pepper + salt[0][0] + password)
         # get all of the user's data and return it
         data = self.cursor.execute(f'''SELECT * FROM Users 
-                                   WHERE username = '{username}' AND password = '{hashed_password}' AND mail = '{mail}' ''').fetchall()
+                                   WHERE username = ? AND password = ? AND mail = ? ''', (username, hashed_password, mail)).fetchall()
         return data
     
     
@@ -163,13 +160,13 @@ class UsernamePasswordORM(object):
         if user.password != "":
             self.update_password(user.username, user.password)
         self.cursor.execute(f'''UPDATE Users
-                            SET age = '{user.age}', gender = '{user.gender}', country = '{user.country}', occupation = '{user.occupation}', date_creation = '{user.date_creation}', description = '{user.description}'
-                            WHERE username = '{user.username}' ''')
+                            SET age = ?, gender = ?, country = ?, occupation = ?, date_creation = ?, description = ?
+                            WHERE username = ? ''', (user.age, user.gender, user.country, user.occupation, user.date_creation, user.description, user.username))
         self.commit()
     
     def get_data_from_username(self, username):
         data = self.cursor.execute(f'''SELECT * FROM Users 
-                                   WHERE username = '{username}' ''').fetchall()
+                                   WHERE username = ? ''', (username,)).fetchall()
         
         if len(data) == 0:
             return []
@@ -213,7 +210,7 @@ class MessagesORM(object):
 
         self.commit()
 
-    def insert_message(self, message: classes.MessageVServer):
+    def insert_message(self, message: classes.MessageStruct):
         self.cursor.execute('''
             INSERT INTO Messages (content, date_published, sender_username, conversation_title)
             VALUES (?, ?, ?, ?)
@@ -251,7 +248,7 @@ class MessagesORM(object):
     
     def get_first_messages(self, conversation_title, amount=1):
         all_messages = self.cursor.execute(f'''SELECT * FROM Messages 
-                                           WHERE conversation_title = '{conversation_title}' ''').fetchall()
+                                           WHERE conversation_title = ? ''', (conversation_title,)).fetchall()
         
         if len(all_messages) == 0:
             return []
@@ -263,7 +260,7 @@ class MessagesORM(object):
         
     def get_first_new_messages(self, conversation_title, last_recieved_msg_content, amount=1):
         all_messages = self.cursor.execute(f'''SELECT * FROM Messages 
-                                           WHERE conversation_title = '{conversation_title}' ''').fetchall()
+                                           WHERE conversation_title = ? ''', (conversation_title,)).fetchall()
         
         # check from last to first in case 2 messages with the same content
         all_messages_reversed = list(reversed(all_messages))
@@ -320,7 +317,7 @@ class ConversationsORM(object):
 
         self.commit()
 
-    def insert_conversation(self, conversation: classes.ConversationVServer):
+    def insert_conversation(self, conversation: classes.ConversationStruct):
         self.cursor.execute('''
             INSERT INTO Conversations (title, creator_username, creation_date, restrictions)
             VALUES (?, ?, ?, ?)
@@ -389,15 +386,9 @@ class ConversationsORM(object):
         return return_lst
 
     def conversation_checks(self, title):
-        """
-        Process: conduct all checks for registeration - mail and username must be unique
-        :parameter: username (string), mail (string)
-        :return: a list ([] means success, other results explain the issue)
-        """
-        
         # search for the existence of the name and mail
         title_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
-                                   WHERE title = '{title}' ''').fetchall())
+                                   WHERE title = ? ''', (title,)).fetchall())
         
         # return if both mail and name are unavailable or just one of them
         if title_in_data :

@@ -98,11 +98,11 @@ class TCPServer:
                     
                     conversation_status = conversations_db.conversation_checks(fields[0])
                     if not conversation_status:
-                        conversation = classes.ConversationVServer(fields[0], fields[4], fields[3], fields[2])
+                        conversation = classes.ConversationStruct(fields[0], fields[4], fields[3], fields[2])
                         conversations_db.insert_conversation(conversation)
                         # there can't be two titles with the same name!!
                         
-                        message = classes.MessageVServer(fields[1], fields[3], fields[4], fields[0])
+                        message = classes.MessageStruct(fields[1], fields[3], fields[4], fields[0])
                         messages_db.insert_message(message)
                         
                         to_send = "NEWCNV|new_conversation_added"
@@ -147,7 +147,7 @@ class TCPServer:
                     self.clients_conversations[client_socket] = self.apart_titles_from_lst(last_conversations)
                 
                 elif command == "NEWMSG":
-                    message = classes.MessageVServer(fields[0], fields[1], fields[2], fields[3])
+                    message = classes.MessageStruct(fields[0], fields[1], fields[2], fields[3])
                     messages_db.insert_message(message)
                 
                     to_send = "NEWMSG|new_message_added"
