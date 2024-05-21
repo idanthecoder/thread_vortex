@@ -22,29 +22,12 @@ class User:
         cloned_user = User(self.username, None, self.mail, self.age, self.gender, self.country, self.occupation, self.date_creation, self.description)
         return cloned_user
 
-#class Message:
-#    def __init__(self, content: str, sender: User, date_published: str):
-#        self.content = content
-#        self.sender = sender
-#        self.date_published = date_published
-
 class MessageStruct:
     def __init__(self, content: str, date_published: str, sender_username: str, conversation_title: str):
         self.content = content
         self.date_published = date_published
         self.sender_username = sender_username
         self.conversation_title = conversation_title
-
-#class Conversation:
-#    def __init__(self, title: str, creator_username: int, creation_date: str, restrictions: str, message_lst: list[Message]=None):
-#        self.title = title
-#        self.creator_username = creator_username
-#        self.creation_date = creation_date
-#        self.restrictions = restrictions
-#        if message_lst is None:
-#            message_lst = []
-#        else:
-#            self.message_lst = message_lst
 
 class ConversationStruct:
     def __init__(self, title: str, creator_username: str, creation_date: str, restrictions: str):
