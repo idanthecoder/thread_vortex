@@ -11,6 +11,7 @@ from PIL import ImageTk, Image
 import datetime
 import classes
 from tkinter import messagebox
+from modified_gui import ModifiedCTkScrollableFrame
 
 
 class App(ctk.CTk):
@@ -256,13 +257,15 @@ class HomePage_Connected(ctk.CTkFrame):
 
         # Add messages here
         # Main content area with messages
-        self.content_area = ctk.CTkScrollableFrame(self)
+        self.content_area = ModifiedCTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
         self.conversation_handler = HandleConversations(self.content_area, controller, 5)
         
-        self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, controller, 5))
-        self.request_conversations_button.pack(side=ctk.BOTTOM)
+        self.content_area.set_func(self.conversation_handler.request_more, self.content_area, controller, 5)
+        
+        #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, controller, 5))
+        #self.request_conversations_button.pack(side=ctk.BOTTOM)
     
     def disconnect(self, controller):
         if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
