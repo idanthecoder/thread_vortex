@@ -53,9 +53,9 @@ class TCPServer:
 
     def handle_client(self, client_socket):
         try:
-            encryption_handler = EncryptionHandler(client_socket)
+            handle_encryption = EncryptionHandler(client_socket)
             while not self.exit_all:
-                data = recv_by_size(client_socket).decode()
+                data = handle_encryption.decipher_data(recv_by_size(client_socket))
                 if not data:
                     break
                 print(f"Received: {data}")
@@ -205,7 +205,7 @@ class TCPServer:
 
                 
                 
-                send_with_size(client_socket, to_send)
+                send_with_size(client_socket, handle_encryption.cipher_data(to_send))
         except Exception as e:
             print(f"Error: {e}")
         finally:

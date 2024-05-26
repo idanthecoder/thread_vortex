@@ -167,8 +167,8 @@ class RegisterPage(ctk.CTkFrame):
         self.user_register(controller, user_profile)
     
     def user_register(self, controller, user_profile: classes.User):
-        send_with_size(client_socket, f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -207,8 +207,8 @@ class LoginPage(ctk.CTkFrame):
     
     def user_login(self, controller, name, password, email):
         global user_profile
-        send_with_size(client_socket, f"LOGUSR|{name}|{password}|{email}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"LOGUSR|{name}|{password}|{email}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -329,8 +329,8 @@ class EditProfilePage(ctk.CTkFrame):
         self.user_edit_profile(controller, user_profile, password)
     
     def user_edit_profile(self, controller, user_profile: classes.User, password):
-        send_with_size(client_socket, f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -385,8 +385,8 @@ class ViewProfile(ctk.CTkFrame):
         go_back_button.pack(pady=10)
     
     def get_other_user_data(self):
-        send_with_size(client_socket, f"GETUSR|{self.profile_username}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"GETUSR|{self.profile_username}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -434,8 +434,8 @@ class CreateNewConversation(ctk.CTkFrame):
     def add_conversation(self, controller, conversation_title, message_content, restriction_status):
         current_date = datetime.datetime.now()
         creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
-        send_with_size(client_socket, f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -467,8 +467,8 @@ class HandleConversations:
         self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations(frame_area, controller, amount)
     
     def get_initial_conversations(self, frame_area, controller, amount=5):
-        send_with_size(client_socket, f"FSTCNV|{amount}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"FSTCNV|{amount}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -487,8 +487,8 @@ class HandleConversations:
             ConversationGUI(frame_area, controller, conv.title, conv.creator_username, conv.creation_date)
     
     def request_more(self, frame_area, controller, amount=5):
-        send_with_size(client_socket, f"MORCNV|{amount}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{amount}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -560,8 +560,8 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         self.message_content_entry.delete("1.0","end")
         
-        send_with_size(client_socket, f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{self.title}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{self.title}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -584,8 +584,8 @@ class HandleMessages:
 
     
     def get_initial_messages(self):
-        send_with_size(client_socket, f"FSTMSG|{self.amount}|{self.conversation_title}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"FSTMSG|{self.amount}|{self.conversation_title}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -604,8 +604,8 @@ class HandleMessages:
             MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username)
     
     def request_more(self):
-        send_with_size(client_socket, f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].content}")
-        data = recv_by_size(client_socket).decode().split('|')
+        send_with_size(client_socket, handle_encryption.cipher_data(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].content}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
         
@@ -640,7 +640,7 @@ if __name__ == "__main__":
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('localhost', 12345))
     user_profile = None
-    encryption_handler = EncryptionHandler(client_socket)
+    handle_encryption = EncryptionHandler(client_socket)
     #get_conversations_thread = threading.Thread(target=get_conversations)
     app = App()
     app.mainloop()
