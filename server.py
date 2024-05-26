@@ -6,6 +6,7 @@ import threading
 from tcp_by_size import send_with_size, recv_by_size
 import hash_handler
 import classes
+from encryption_handler import EncryptionHandler
 
 
 DEBUG = True
@@ -52,6 +53,7 @@ class TCPServer:
 
     def handle_client(self, client_socket):
         try:
+            encryption_handler = EncryptionHandler(client_socket)
             while not self.exit_all:
                 data = recv_by_size(client_socket).decode()
                 if not data:

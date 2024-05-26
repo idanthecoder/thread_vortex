@@ -12,6 +12,7 @@ import datetime
 import classes
 from tkinter import messagebox
 from modified_gui import ModifiedCTkScrollableFrame
+from encryption_handler import EncryptionHandler
 
 
 class App(ctk.CTk):
@@ -632,13 +633,14 @@ class MessageGUI(ctk.CTkFrame):
         self.date_label.pack(side=ctk.RIGHT, padx=10)
         self.content_label = ctk.CTkLabel(self, text=content)
         self.content_label.pack(side=ctk.TOP, pady=35)
-    
+
 
 if __name__ == "__main__":
     # perhaps I should have a global: connected_status and maybe in_conversation to know where to return to after reading user's data.
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect(('localhost', 12345))
     user_profile = None
+    encryption_handler = EncryptionHandler(client_socket)
     #get_conversations_thread = threading.Thread(target=get_conversations)
     app = App()
     app.mainloop()
