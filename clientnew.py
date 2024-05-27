@@ -252,6 +252,24 @@ class HomePage_Connected(ctk.CTkFrame):
         self.new_conversation_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_conversation_icon, command=lambda: controller.show_page(CreateNewConversation))
         self.new_conversation_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
         
+        
+        # change configuration button
+        self.configuration_frame = ctk.CTkFrame(self.sidebar, fg_color="white")
+        self.configuration_frame.pack()
+        
+        reconfiguration_icon_image = Image.open(fp=os.path.join("assets","sort icon 1.png"))
+        self.reconfiguration_icon = ctk.CTkImage(light_image=reconfiguration_icon_image, size=(40, 40))
+        self.reconfiguration_label = ctk.CTkLabel(self.configuration_frame, image=self.reconfiguration_icon, text="")
+        self.reconfiguration_label.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        
+        optionmenu_var = ctk.StringVar(value="")  # set initial value
+        reconfiguration_combobox = ctk.CTkOptionMenu(master=self.configuration_frame,
+                                       values=["", "Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"],
+                                       command=self.reconfigure_conversations_screen,
+                                       variable=optionmenu_var)
+        reconfiguration_combobox.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        
+        
         self.topics = ["Gaming", "Cyber", "Tech", "Fashion", "Sports", "History", "Politics", "Physics"]
         for topic in self.topics:
             ctk.CTkButton(self.sidebar, text=topic, fg_color="white", text_color="black", hover_color="cyan", width=100).pack(pady=2)
@@ -263,7 +281,7 @@ class HomePage_Connected(ctk.CTkFrame):
         
         self.conversation_handler = HandleConversations(self.content_area, controller, 5)
         
-        self.content_area.set_func(self.conversation_handler.request_more, self.content_area, controller, 5)
+        self.content_area.set_func(self.conversation_handler.request_more)
         
         #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, controller, 5))
         #self.request_conversations_button.pack(side=ctk.BOTTOM)
@@ -271,6 +289,21 @@ class HomePage_Connected(ctk.CTkFrame):
     def disconnect(self, controller):
         if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
             controller.show_page(OpeningScreen)
+    
+    def reconfigure_conversations_screen(self, choice):
+        "Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"
+        
+        # if the default string was chosen then anyway nothing will change
+        if choice == "":
+            return
+        
+        self.clear_frame(self.content_area)
+        
+        self.conversation_handler.reconfigure_conversation_order(choice)
+    
+    def clear_frame(self, frame):
+        for widgets in frame.winfo_children():
+            widgets.destroy()
                 
                 
 class EditProfilePage(ctk.CTkFrame):
@@ -477,10 +510,13 @@ class ConversationGUI(ctk.CTkFrame):
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
     def __init__(self, frame_area, controller, amount=5) -> None:
-        self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations(frame_area, controller, amount)
+        self.frame_area = frame_area
+        self.controller = controller
+        self.amount = amount
+        self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations()
     
-    def get_initial_conversations(self, frame_area, controller, amount=5):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"FSTCNV|{amount}"))
+    def get_initial_conversations(self):
+        send_with_size(client_socket, handle_encryption.cipher_data(f"FSTCNV|{self.amount}"))
         data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
@@ -492,15 +528,15 @@ class HandleConversations:
                     conv_splt = convdata.split('_')
                     conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
         
-                self.draw_conversations(conversations, frame_area, controller)
+                self.draw_conversations(conversations)
         return conversations
 
-    def draw_conversations(self, conversations, frame_area, controller):
+    def draw_conversations(self, conversations):
         for conv in conversations:
-            ConversationGUI(frame_area, controller, conv.title, conv.creator_username, conv.creation_date)
+            ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date)
     
-    def request_more(self, frame_area, controller, amount=5):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{amount}"))
+    def request_more(self):
+        send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{self.amount}"))
         data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
@@ -512,8 +548,28 @@ class HandleConversations:
                     conv_splt = convdata.split('_')
                     self.conversations_lst.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                     conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-                self.draw_conversations(conversations, frame_area, controller)
-                 
+                self.draw_conversations(conversations)
+    
+    def reconfigure_conversation_order(self, order_by):
+        #self.conversations_lst
+        if order_by == "Sort Alphabetically":
+            self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title)
+        elif order_by == "Sort Alphabetically (Reverse)":
+            self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title, reverse=True)
+        elif order_by == "Sort Chronologically":
+            self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date)
+        elif order_by == "Sort Chronologically (Reverse)":
+            self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date, reverse=True)
+        elif order_by == "Sort By Popularity":
+            pass
+        elif order_by == "Sort By Popularity (Reverse)":
+            pass
+        
+        self.draw_conversations(self.conversations_lst)
+    
+    def sort_by_creation_date(self, conversation):
+        creation_date = datetime.datetime.strptime(conversation.creation_date, "%d/%m/%Y %H:%M")
+        return creation_date
 
 
 class InsideConversationGUI(ctk.CTkFrame):
