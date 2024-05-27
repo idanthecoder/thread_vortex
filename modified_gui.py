@@ -19,7 +19,10 @@ class ModifiedCTkScrollableFrame(ctk.CTkScrollableFrame):
 
     def _custom_function(self):
         #print("Scrollbar reached near the end!")
-        self.func(*self.args)
+        if len(self.args) == 0:
+            self.func()
+        else:
+            self.func(*self.args)
         
     def set_func(self, func, *args):
         self.func = func
