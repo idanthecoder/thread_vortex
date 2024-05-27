@@ -196,8 +196,29 @@ class TCPServer:
                     else:
                         user_data = data_users[0]
                         to_send = f"GETUSR|{user_data[1]}|{user_data[4]}|{user_data[5]}|{user_data[6]}|{user_data[7]}|{user_data[8]}|{user_data[9]}|{user_data[10]}"
+                
+                elif command == "SRCCNV":
+                    search_in_convs = conversations_db.search_for(fields[0])
+                    search_in_msgs = messages_db.search_for(fields[0])
                     
+                    # get the conversation data in which this message is
+                    convs_from_msgs = []
+                    for msgdata in search_in_msgs:
+                        convs_from_msgs.append(conversations_db.get_data_from_title(msgdata[4]))
+                    
+                    merged_lst = self.merge_lists(search_in_convs, convs_from_msgs)
                         
+                    if merged_lst == []:
+                        to_send = "SRCCNV|word_not_found"
+                    else:
+                        to_send = "SRCCNV|"
+                        
+                        for i, conv in enumerate(merged_lst):
+                            if i == len(merged_lst)-1:
+                                to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}"
+                            else:
+                                to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}|"
+                    
 
                     
                     
@@ -217,6 +238,19 @@ class TCPServer:
         for conv in conversation_lst:
             titles_lst.append(conv[1])
         return titles_lst
+    
+    def merge_lists(self, list1, list2):
+        unique_titles = set()
+        merged_list = []
+
+        list12 = list1 + list2
+        for tup in list12:
+            title = tup[1]  # Assuming title is at position [1]
+            if title not in unique_titles:
+                unique_titles.add(title)
+                merged_list.append(tup)
+
+        return merged_list
 
     def broadcast(self, message):
         for client_socket in self.clients:

@@ -282,6 +282,13 @@ class MessagesORM(object):
         # if there are new messages and can return the requested amount
         else:
             return all_messages[new_index: new_index+amount]
+    
+    def search_for(self, search_for):
+        search_in_data = (self.cursor.execute(f'''SELECT * FROM Messages
+                                   WHERE content Like ?''', (f"%{search_for}%",)).fetchall())
+        if len(search_in_data) == 0:
+            return []
+        return search_in_data
         
 #---------------------------------
 
@@ -366,7 +373,6 @@ class ConversationsORM(object):
         else:
             return all_convs[-amount:] 
         
-    
     def get_last_new_conversations(self, shown_titles, amount=1):
         all_convs = self.get_table("Conversations")
         if len(all_convs) == 0:
@@ -400,10 +406,19 @@ class ConversationsORM(object):
         
         # a valid regiseration
         return []
-        
-        
-    
-            
 
-            
-            
+    def search_for(self, search_for):
+        search_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
+                                   WHERE title Like ?''', (f"%{search_for}%",)).fetchall())
+        if len(search_in_data) == 0:
+            return []
+        return search_in_data
+
+    def get_data_from_title(self, title):
+        data = self.cursor.execute(f'''SELECT * FROM Conversations 
+                                   WHERE title = ? ''', (title,)).fetchall()
+        
+        if len(data) == 0:
+            return []
+        return data[0]
+

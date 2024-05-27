@@ -68,6 +68,14 @@ class App(ctk.CTk):
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
             
+            elif "str_to_search" in kwargs:
+                str_to_search = kwargs.pop("str_to_search")
+                if str_to_search != self.saved_frames[class_to_show].str_to_search:
+                    self.frame = class_to_show(self.container, self, str_to_search)
+                    self.saved_frames[class_to_show] = self.frame
+                    self.frame.grid(row=0, column=0, sticky="nsew")
+                    return
+            
             # if no kwargs are given or if their values are the same then user tkraise to switch frames
             self.frame = self.saved_frames[class_to_show]
             self.frame.tkraise()
@@ -77,6 +85,8 @@ class App(ctk.CTk):
                 self.frame = class_to_show(self.container, self, kwargs.pop("profile_username"), kwargs.pop("class_return_to"), kwargs.pop("edited_profile"))
             elif "title" in kwargs:
                 self.frame = class_to_show(self.container, self, kwargs.pop("title"))
+            elif "str_to_search" in kwargs:
+                self.frame = class_to_show(self.container, self, kwargs.pop("str_to_search"))
             else:
                 self.frame = class_to_show(self.container, self)
             
@@ -229,7 +239,7 @@ class HomePage_Connected(ctk.CTkFrame):
         self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
         self.search_bar = ctk.CTkEntry(self.top_bar)
         self.search_bar.pack(side=ctk.LEFT, padx=1)
-        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100)
+        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: controller.show_page(SearchPage, str_to_search=self.search_bar.get()))
         self.search_button.pack(side=ctk.LEFT)
         self.disconnect_button = ctk.CTkButton(self.top_bar, text="Disconnect", fg_color="white", text_color="black", hover_color="cyan", command=lambda: self.disconnect(controller))
         self.disconnect_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
@@ -297,13 +307,45 @@ class HomePage_Connected(ctk.CTkFrame):
         if choice == "":
             return
         
-        self.clear_frame(self.content_area)
+        clear_frame(self.content_area)
         
         self.conversation_handler.reconfigure_conversation_order(choice)
     
-    def clear_frame(self, frame):
-        for widgets in frame.winfo_children():
-            widgets.destroy()
+def clear_frame(frame):
+    for widgets in frame.winfo_children():
+        widgets.destroy()
+
+
+class SearchPage(ctk.CTkFrame):
+    def __init__(self, parent, controller, str_to_search):
+            super().__init__(parent)
+            self.str_to_search = str_to_search
+            self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
+            self.top_bar.pack(fill=ctk.X)
+            self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
+            self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
+            self.search_bar = ctk.CTkEntry(self.top_bar)
+            self.search_bar.pack(side=ctk.LEFT, padx=1)
+            self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_again(self.search_bar.get()))
+            self.search_button.pack(side=ctk.LEFT)
+            
+            # Sidebar with topics
+            self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
+            self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
+            
+            self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=lambda: controller.show_page(HomePage_Connected))
+            self.go_back_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+            
+            # Main content area with messages
+            self.content_area = ctk.CTkScrollableFrame(self)
+            self.content_area.pack(fill=ctk.BOTH, expand=True)
+            
+            self.conversation_handler = HandleConversations(self.content_area, controller, 5, True)
+            self.conversation_handler.search_all(str_to_search)
+    
+    def search_again(self, to_search):
+        clear_frame(self.content_area)
+        self.conversation_handler.search_all(to_search)
                 
                 
 class EditProfilePage(ctk.CTkFrame):
@@ -509,11 +551,13 @@ class ConversationGUI(ctk.CTkFrame):
 
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
-    def __init__(self, frame_area, controller, amount=5) -> None:
+    def __init__(self, frame_area, controller, amount=5, search_active=False) -> None:
         self.frame_area = frame_area
         self.controller = controller
         self.amount = amount
-        self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations()
+        if not search_active:
+            self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations()
+        self.search_conversations_lst = []
     
     def get_initial_conversations(self):
         send_with_size(client_socket, handle_encryption.cipher_data(f"FSTCNV|{self.amount}"))
@@ -570,6 +614,21 @@ class HandleConversations:
     def sort_by_creation_date(self, conversation):
         creation_date = datetime.datetime.strptime(conversation.creation_date, "%d/%m/%Y %H:%M")
         return creation_date
+    
+    def search_all(self, search_for):
+        send_with_size(client_socket, handle_encryption.cipher_data(f"SRCCNV|{search_for}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "SRCCNV":
+            if data[1] != "word_not_found":
+                found_conversations = []
+                for convdata in data[1:]:
+                    conv_splt = convdata.split('_')
+                    self.search_conversations_lst.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                    found_conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
+                self.draw_conversations(found_conversations)
 
 
 class InsideConversationGUI(ctk.CTkFrame):
