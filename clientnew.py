@@ -13,7 +13,7 @@ import classes
 from tkinter import messagebox
 from modified_gui import ModifiedCTkScrollableFrame
 from encryption_handler import EncryptionHandler
-
+from text_to_speech_handler import speak_text, stop_speech
 
 class App(ctk.CTk):
     def __init__(self):
@@ -457,6 +457,19 @@ class ConversationGUI(ctk.CTkFrame):
         self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
+        ####        
+        
+        mute_icon_image = Image.open(fp=os.path.join("assets","mute icon 1.png"))
+        self.mute_icon = ctk.CTkImage(light_image=mute_icon_image, size=(30, 30))
+        self.mute_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.mute_icon, command=stop_speech)
+        self.mute_button.pack(side=ctk.RIGHT, padx=5)
+        
+        speaker_icon_image = Image.open(fp=os.path.join("assets","speaker icon 1.png"))
+        self.speaker_icon = ctk.CTkImage(light_image=speaker_icon_image, size=(30, 30))
+        self.speech_text_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(title,)).start())
+        self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
+        
+        ####
         self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(InsideConversationGUI, title=title))
         self.title_button.pack(side=ctk.TOP, pady=35)
         
@@ -631,6 +644,17 @@ class MessageGUI(ctk.CTkFrame):
         self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
+        ####
+        mute_icon_image = Image.open(fp=os.path.join("assets","mute icon 1.png"))
+        self.mute_icon = ctk.CTkImage(light_image=mute_icon_image, size=(30, 30))
+        self.mute_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.mute_icon, command=stop_speech)
+        self.mute_button.pack(side=ctk.RIGHT, padx=5)
+        
+        speaker_icon_image = Image.open(fp=os.path.join("assets","speaker icon 1.png"))
+        self.speaker_icon = ctk.CTkImage(light_image=speaker_icon_image, size=(30, 30))
+        self.speech_text_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(content,)).start())
+        self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
+        ####
         self.content_label = ctk.CTkLabel(self, text=content)
         self.content_label.pack(side=ctk.TOP, pady=35)
 
