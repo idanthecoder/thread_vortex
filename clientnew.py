@@ -14,6 +14,7 @@ from tkinter import messagebox
 from modified_gui import ModifiedCTkScrollableFrame
 from encryption_handler import EncryptionHandler
 from text_to_speech_handler import speak_text, stop_speech
+from collections import deque
 
 class App(ctk.CTk):
     def __init__(self):
@@ -65,22 +66,23 @@ class App(ctk.CTk):
                     return
             
             # if this parameter is in kwargs then this relates to the InsideConversationGUI class
-            elif "title" in kwargs:
+            elif "title" in kwargs and "class_return_to" in kwargs:
                 title = kwargs.pop("title")
+                class_return_to = kwargs.pop("class_return_to")
                 # if the value is new then it is a different conversation. Rreset the value for this class and grid it
-                if title != self.saved_frames[class_to_show].title:
-                    self.frame = class_to_show(self.container, self, title)
+                if title != self.saved_frames[class_to_show].title or class_return_to != self.saved_frames[class_to_show].class_return_to:
+                    self.frame = class_to_show(self.container, self, title, class_return_to)
                     self.saved_frames[class_to_show] = self.frame
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
             
-            elif "str_to_search" in kwargs:
-                str_to_search = kwargs.pop("str_to_search")
-                if str_to_search != self.saved_frames[class_to_show].str_to_search:
-                    self.frame = class_to_show(self.container, self, str_to_search)
-                    self.saved_frames[class_to_show] = self.frame
-                    self.frame.grid(row=0, column=0, sticky="nsew")
-                    return
+            #elif "str_to_search" in kwargs:
+            #    str_to_search = kwargs.pop("str_to_search")
+            #    if str_to_search != self.saved_frames[class_to_show].str_to_search:
+            #        self.frame = class_to_show(self.container, self, str_to_search)
+            #        self.saved_frames[class_to_show] = self.frame
+            #        self.frame.grid(row=0, column=0, sticky="nsew")
+            #        return
             
             # if no kwargs are given or if their values are the same then user tkraise to switch frames
             self.frame = self.saved_frames[class_to_show]
@@ -89,14 +91,15 @@ class App(ctk.CTk):
             # if it is a totally new class then create an instance of it and grid it
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
                 self.frame = class_to_show(self.container, self, kwargs.pop("profile_username"), kwargs.pop("class_return_to"), kwargs.pop("edited_profile"))
-            elif "title" in kwargs:
-                self.frame = class_to_show(self.container, self, kwargs.pop("title"))
+            elif "title" in kwargs and "class_return_to" in kwargs:
+                self.frame = class_to_show(self.container, self, kwargs.pop("title"), kwargs.pop("class_return_to"))
             elif "str_to_search" in kwargs:
                 self.frame = class_to_show(self.container, self, kwargs.pop("str_to_search"))
             else:
                 self.frame = class_to_show(self.container, self)
             
-            self.saved_frames[class_to_show] = self.frame
+            if class_to_show != SearchPage:
+                self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
         
 
@@ -236,11 +239,9 @@ class LoginPage(ctk.CTkFrame):
 
 class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        global user_profile, current_screen
+        global user_profile
         super().__init__(parent)
-        
-        current_screen = HomePage_Connected
-        
+                
         # Top bar with logo, search bar, and login/register buttons
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
@@ -298,7 +299,7 @@ class HomePage_Connected(ctk.CTkFrame):
         self.content_area = ModifiedCTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
-        self.conversation_handler = HandleConversations(self.content_area, controller, 5)
+        self.conversation_handler = HandleConversations(self.content_area, controller, HomePage_Connected, 5)
         
         self.content_area.set_func(self.conversation_handler.request_more)
         
@@ -327,11 +328,10 @@ def clear_frame(frame):
 
 class SearchPage(ctk.CTkFrame):
     def __init__(self, parent, controller, str_to_search):
-            global current_screen
+            global last_search
             super().__init__(parent)
             
-            current_screen = SearchPage
-            
+            last_search = str_to_search
             self.str_to_search = str_to_search
             self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
             self.top_bar.pack(fill=ctk.X)
@@ -353,11 +353,13 @@ class SearchPage(ctk.CTkFrame):
             self.content_area = ctk.CTkScrollableFrame(self)
             self.content_area.pack(fill=ctk.BOTH, expand=True)
             
-            self.conversation_handler = HandleConversations(self.content_area, controller, 5, True)
+            self.conversation_handler = HandleConversations(self.content_area, controller, SearchPage, 5, True)
             self.conversation_handler.search_all(str_to_search)
     
     def search_again(self, to_search):
+        global last_search
         clear_frame(self.content_area)
+        last_search = to_search
         self.conversation_handler.search_all(to_search)
                 
                 
@@ -435,6 +437,7 @@ class ViewProfile(ctk.CTkFrame):
         self.profile_username = profile_username
         self.class_return_to = class_return_to
         self.edited_profile = edited_profile
+        self.controller = controller
         
         if profile_username == user_profile.username:
             user_data: classes.User = classes.User.clone(user_profile)
@@ -443,7 +446,7 @@ class ViewProfile(ctk.CTkFrame):
             user_data = self.get_other_user_data()
             if user_data == "no_user":
                 messagebox.showwarning("Warning", "No such user exists in the database")
-                controller.show_page(class_return_to)
+                self.go_back_h()
         
         name_label = ctk.CTkLabel(self, text=f"The info page of \"{user_data.username}\"")
         name_label.pack(pady=2)
@@ -469,7 +472,7 @@ class ViewProfile(ctk.CTkFrame):
         description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
         description_label.pack()
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(class_return_to))
+        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: self.go_back_h())
         go_back_button.pack(pady=10)
     
     def get_other_user_data(self):
@@ -484,7 +487,12 @@ class ViewProfile(ctk.CTkFrame):
                 return user_data
             else:
                 return "no_user"
-             
+    
+    def go_back_h(self):
+        if self.class_return_to == SearchPage:
+            self.controller.show_page(self.class_return_to, str_to_search=last_search) 
+        else:
+            self.controller.show_page(self.class_return_to) 
 
 class CreateNewConversation(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -530,18 +538,19 @@ class CreateNewConversation(ctk.CTkFrame):
         if data[0] == "NEWCNV":
             if data[1] == "new_conversation_added":
                 messagebox.showinfo("Info", "Created new conversation!")
-                controller.show_page(InsideConversationGUI, title=conversation_title)
+                controller.show_page(InsideConversationGUI, title=conversation_title, class_return_to=HomePage_Connected)
             elif data[1] == "title_issue":
                 #messagebox.showinfo("Info", "Created new conversation!")
                 messagebox.showwarning("Warning", "This conversation already exists")
    
 
 class ConversationGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, title, username, date):
+    def __init__(self, parent, controller, title, username, date, class_return_to):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
-        self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=HomePage_Connected, edited_profile=False))
+        
+        self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=class_return_to, edited_profile=False))
         self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
@@ -558,16 +567,17 @@ class ConversationGUI(ctk.CTkFrame):
         self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
         
         ####
-        self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(InsideConversationGUI, title=title))
+        self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(InsideConversationGUI, title=title, class_return_to=class_return_to))
         self.title_button.pack(side=ctk.TOP, pady=35)
         
 
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
-    def __init__(self, frame_area, controller, amount=5, search_active=False) -> None:
+    def __init__(self, frame_area, controller, class_return_to, amount=5, search_active=False) -> None:
         self.frame_area = frame_area
         self.controller = controller
         self.amount = amount
+        self.class_return_to = class_return_to
         if not search_active:
             self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations()
         self.search_conversations_lst = []
@@ -590,7 +600,7 @@ class HandleConversations:
 
     def draw_conversations(self, conversations):
         for conv in conversations:
-            ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date)
+            ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date, self.class_return_to)
     
     def request_more(self):
         send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{self.amount}"))
@@ -645,10 +655,10 @@ class HandleConversations:
 
 
 class InsideConversationGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, title):
+    def __init__(self, parent, controller, title, class_return_to):
         global user_profile
         super().__init__(parent)
-        
+        self.class_return_to = class_return_to
         # Top bar
         self.controller = controller
         self.title = title
@@ -693,7 +703,10 @@ class InsideConversationGUI(ctk.CTkFrame):
     def go_back_smoothly(self):
         self.check_continuously.set(value=False)
         self.after_cancel(self.job)
-        self.controller.show_page(current_screen)
+        if self.class_return_to == SearchPage:
+            self.controller.show_page(self.class_return_to, str_to_search=last_search)
+        else:
+            self.controller.show_page(self.class_return_to)
     
     def post_message(self, message_content):
         current_date = datetime.datetime.now()
@@ -794,6 +807,5 @@ if __name__ == "__main__":
     user_profile = None
     handle_encryption = EncryptionHandler(client_socket)
     #get_conversations_thread = threading.Thread(target=get_conversations)
-    current_screen = OpeningScreen
     app = App()
     app.mainloop()
