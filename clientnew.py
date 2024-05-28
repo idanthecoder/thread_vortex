@@ -545,10 +545,15 @@ class CreateNewConversation(ctk.CTkFrame):
    
 
 class ConversationGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, title, username, date, class_return_to):
+    def __init__(self, parent, controller, title, username, date, restrictions, class_return_to):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
+        
+        self.controller = controller
+        self.title = title
+        self.restrictions = restrictions
+        self.class_return_to = class_return_to
         
         self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=class_return_to, edited_profile=False))
         self.user_button.pack(side=ctk.LEFT, padx=10)
@@ -567,8 +572,17 @@ class ConversationGUI(ctk.CTkFrame):
         self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
         
         ####
-        self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(InsideConversationGUI, title=title, class_return_to=class_return_to))
+        self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= self.enter_conversation)
         self.title_button.pack(side=ctk.TOP, pady=35)
+    
+    def enter_conversation(self):
+        # first we must check the restrictions.
+        if self.restrictions == "18+":
+            if user_profile.age == "" or int(user_profile.age) < 18:
+                messagebox.showwarning("Warning", "Conversation with restricted access - 18+ only")
+                return
+        self.controller.show_page(InsideConversationGUI, title=self.title, class_return_to=self.class_return_to)
+        
         
 
 class HandleConversations:
@@ -600,7 +614,7 @@ class HandleConversations:
 
     def draw_conversations(self, conversations):
         for conv in conversations:
-            ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date, self.class_return_to)
+            ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date, conv.restrictions, self.class_return_to)
     
     def request_more(self):
         send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{self.amount}"))
