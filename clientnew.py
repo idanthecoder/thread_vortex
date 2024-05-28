@@ -43,6 +43,12 @@ class App(ctk.CTk):
         Returns: Nothing.
         """
         
+        ## not sure about this change, but it fixes a bug of exiting and returning to the same conversation
+        #if class_to_show == InsideConversationGUI:
+        #    self.frame = class_to_show(self.container, self, kwargs.pop("title"))
+        #    self.frame.grid(row=0, column=0, sticky="nsew")
+        #    return
+        
         # if the requested class is already saved in the dictinary I want to use it in the state it was last left in
         if class_to_show in self.saved_frames.keys():
             # if those parameters are in kwargs then this relates to the ViewProfile class
@@ -230,8 +236,11 @@ class LoginPage(ctk.CTkFrame):
 
 class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        global user_profile
+        global user_profile, current_screen
         super().__init__(parent)
+        
+        current_screen = HomePage_Connected
+        
         # Top bar with logo, search bar, and login/register buttons
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
@@ -318,7 +327,11 @@ def clear_frame(frame):
 
 class SearchPage(ctk.CTkFrame):
     def __init__(self, parent, controller, str_to_search):
+            global current_screen
             super().__init__(parent)
+            
+            current_screen = SearchPage
+            
             self.str_to_search = str_to_search
             self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
             self.top_bar.pack(fill=ctk.X)
@@ -680,7 +693,7 @@ class InsideConversationGUI(ctk.CTkFrame):
     def go_back_smoothly(self):
         self.check_continuously.set(value=False)
         self.after_cancel(self.job)
-        self.controller.show_page(HomePage_Connected)
+        self.controller.show_page(current_screen)
     
     def post_message(self, message_content):
         current_date = datetime.datetime.now()
@@ -781,5 +794,6 @@ if __name__ == "__main__":
     user_profile = None
     handle_encryption = EncryptionHandler(client_socket)
     #get_conversations_thread = threading.Thread(target=get_conversations)
+    current_screen = OpeningScreen
     app = App()
     app.mainloop()
