@@ -14,7 +14,7 @@ from tkinter import messagebox
 from modified_gui import ModifiedCTkScrollableFrame
 from encryption_handler import EncryptionHandler
 from text_to_speech_handler import speak_text, stop_speech
-from collections import deque
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -103,23 +103,65 @@ class App(ctk.CTk):
             self.frame.grid(row=0, column=0, sticky="nsew")
         
 
+#class OpeningScreen(ctk.CTkFrame):
+#    def __init__(self, parent, controller):
+#        super().__init__(parent)
+#        # Top bar with logo, search bar, and login/register buttons
+#        self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
+#        self.top_bar.pack(fill=ctk.X)
+#        self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
+#        self.logo.pack(padx=12, pady=1.25)
+#        
+#        
+#        self.choosing_area = ctk.CTkFrame(self, fg_color="#D391FA")
+#        self.choosing_area.pack(fill=ctk.BOTH, expand=True)
+#        
+#        self.login_button = ctk.CTkButton(self.choosing_area, width=300, height=250, text="Login", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(LoginPage))
+#        self.login_button.pack(padx=1.25, pady=1.25)
+#        self.register_button = ctk.CTkButton(self.choosing_area, width=300, height=250, text="Register", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(RegisterPage))
+#        self.register_button.pack(padx=1.25, pady=1.25)
+
+
 class OpeningScreen(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-        # Top bar with logo, search bar, and login/register buttons
-        self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
-        self.top_bar.pack(fill=ctk.X)
-        self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
-        self.logo.pack(padx=12, pady=1.25)
-        
-        
-        self.choosing_area = ctk.CTkFrame(self, fg_color="#D391FA")
-        self.choosing_area.pack(fill=ctk.BOTH, expand=True)
-        
-        self.login_button = ctk.CTkButton(self.choosing_area, width=300, height=250, text="Login", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(LoginPage))
-        self.login_button.pack(padx=1.25, pady=1.25)
-        self.register_button = ctk.CTkButton(self.choosing_area, width=300, height=250, text="Register", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(RegisterPage))
-        self.register_button.pack(padx=1.25, pady=1.25)
+        # Top Frame
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, fill=ctk.X, expand=True, padx=20, pady=20)
+
+        # Logo
+        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))  # Replace with your logo path
+        self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(400, 246))
+        logo_label = ctk.CTkLabel(self.top_frame, image=self.logo_icon, text="")
+        logo_label.pack(pady=5)
+
+        self.credits_label = ctk.CTkLabel(self.top_frame, text="Created by Idan Barkin", font=("Roboto", 40))
+        self.credits_label.pack(pady=5)
+       
+        # Left Frame
+        self.left_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.left_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, padx=20, pady=20)
+
+        # Right Frame
+        self.right_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=20)
+
+        # Chat icon
+        chat_icon_image = Image.open(os.path.join("assets","conversation icon 2.png"))  # Replace with your icon path
+        self.chat_icon = ctk.CTkImage(light_image=chat_icon_image, size=(100, 100))
+        self.chat_label = ctk.CTkLabel(self.left_frame, image=self.chat_icon, text="")
+        self.chat_label.pack(pady=20)
+
+        self.login_button = ctk.CTkButton(self.left_frame, text="Log-in", command=lambda: controller.show_page(LoginPage), width=120, height=32, font=("Roboto", 14))
+        self.login_button.pack(pady=10)
+
+        new_icon_image = Image.open(os.path.join("assets","new icon 2.png"))  # Replace with your icon path
+        self.new_icon = ctk.CTkImage(light_image=new_icon_image, size=(100, 100))
+        self.new_label = ctk.CTkLabel(self.right_frame, image=self.new_icon, text="")
+        self.new_label.pack(pady=20)
+
+        self.register_button = ctk.CTkButton(self.right_frame, text="Register", command=lambda: controller.show_page(RegisterPage), width=120, height=32, font=("Roboto", 14))
+        self.register_button.pack(pady=10)
 
 
 class RegisterPage(ctk.CTkFrame):
