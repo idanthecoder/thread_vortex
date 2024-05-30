@@ -23,11 +23,12 @@ class User:
         return cloned_user
 
 class MessageStruct:
-    def __init__(self, content: str, date_published: str, sender_username: str, conversation_title: str):
+    def __init__(self, content: str, date_published: str, sender_username: str, conversation_title: str, id=None):
         self.content = content
         self.date_published = date_published
         self.sender_username = sender_username
         self.conversation_title = conversation_title
+        self.id = id
 
 class ConversationStruct:
     def __init__(self, title: str, creator_username: str, creation_date: str, restrictions: str):

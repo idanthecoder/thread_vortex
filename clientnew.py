@@ -804,7 +804,7 @@ class HandleMessages:
                 messages = []
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    messages.append(classes.MessageStruct(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
         
         self.draw_messages(messages)
         return messages
@@ -814,7 +814,7 @@ class HandleMessages:
             MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username)
     
     def request_more(self):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].content}"))
+        send_with_size(client_socket, handle_encryption.cipher_data(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].id}"))
         data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
             return
@@ -824,8 +824,8 @@ class HandleMessages:
                 messages = []
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    self.messages_lst.append(classes.MessageStruct(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
-                    messages.append(classes.MessageStruct(msg_splt[0], msg_splt[1], msg_splt[2], msg_splt[3]))
+                    self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
+                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
                 self.draw_messages(messages)
                 #self.messages_lst.append(messages)   
 
@@ -854,6 +854,11 @@ class MessageGUI(ctk.CTkFrame):
         ####
         self.content_label = ctk.CTkLabel(self, text=content)
         self.content_label.pack(side=ctk.TOP, pady=35)
+        #self.content_label = ctk.CTkTextbox(self)
+        #self.content_label.insert("1.0", content)
+        #self.content_label.configure(state=ctk.DISABLED)
+        #self.content_label.pack(side=ctk.TOP, pady=35)
+
 
 
 if __name__ == "__main__":
