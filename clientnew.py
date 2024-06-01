@@ -222,7 +222,7 @@ class RegisterPage(ctk.CTkFrame):
         global user_profile
         
         current_date = datetime.datetime.now()
-        date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
+        date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
         
         user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
         self.user_register(controller, user_profile)
@@ -571,7 +571,7 @@ class CreateNewConversation(ctk.CTkFrame):
     
     def add_conversation(self, controller, conversation_title, message_content, restriction_status):
         current_date = datetime.datetime.now()
-        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
+        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
         send_with_size(client_socket, handle_encryption.cipher_data(f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}"))
         data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
@@ -766,7 +766,7 @@ class InsideConversationGUI(ctk.CTkFrame):
     
     def post_message(self, message_content):
         current_date = datetime.datetime.now()
-        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {current_date.hour}:{current_date.minute}"
+        creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
         
         self.message_content_entry.delete("1.0","end")
         
@@ -805,14 +805,14 @@ class HandleMessages:
                 
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[5], msg_splt[0]))
+                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
         
                 self.draw_messages(messages)
         return messages
 
     def draw_messages(self, messages: list[classes.MessageStruct]):
         for msg in messages:
-            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username, msg.conversation_title, str(msg.id), str(msg.votes))
+            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username, msg.conversation_title, str(msg.id))
     
     def request_more(self):
         # {self.messages_lst[-1] won't cause out of range error beacause when creating a conversation the client will write the first message in that conversation
@@ -826,14 +826,14 @@ class HandleMessages:
                 messages = []
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[5], msg_splt[0]))
-                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[5], msg_splt[0]))
+                    self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
+                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
                 self.draw_messages(messages)
                 #self.messages_lst.append(messages)   
 
 
 class MessageGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, content, date, username, conversation_title, id, votes):
+    def __init__(self, parent, controller, content, date, username, conversation_title, id):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)

@@ -204,8 +204,7 @@ class MessagesORM(object):
                 content TEXT,
                 date_published TEXT,
                 sender_username TEXT,
-                conversation_title TEXT,
-                votes INTEGER
+                conversation_title TEXT
             )
         ''')
 
@@ -213,9 +212,9 @@ class MessagesORM(object):
 
     def insert_message(self, message: classes.MessageStruct):
         self.cursor.execute('''
-            INSERT INTO Messages (content, date_published, sender_username, conversation_title, votes)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (message.content, message.date_published, message.sender_username, message.conversation_title, message.votes))
+            INSERT INTO Messages (content, date_published, sender_username, conversation_title)
+            VALUES (?, ?, ?, ?)
+        ''', (message.content, message.date_published, message.sender_username, message.conversation_title))
         self.commit()
 
     def print_table(self, table_name):
@@ -314,6 +313,10 @@ class MessagesORM(object):
     
     #def alter_table(self):
     #    self.cursor.execute("ALTER TABLE Messages ADD COLUMN votes INTEGER DEFAULT 0")
+    #    self.commit()
+
+    #def dealter_table(self):
+    #    self.cursor.execute("ALTER TABLE Messages DROP COLUMN votes")
     #    self.commit()
         
 #---------------------------------
@@ -530,11 +533,11 @@ class UserMessageVotesORM(object):
 
 
 #if __name__ == "__main__":
-#    orm = UserMessageVotesORM()
-#    orm.connect()
-#    gorm = orm.get_votes(73)
-#    print(gorm[0][0])
-#    print()
-#    #msgorm = MessagesORM()
-#    #msgorm.connect()
-#    #msgorm.alter_table()
+#    #orm = UserMessageVotesORM()
+#    #orm.connect()
+#    #gorm = orm.get_votes(73)
+#    #print(gorm[0][0])
+#    #print()
+#    msgorm = MessagesORM()
+#    msgorm.connect()
+#    msgorm.dealter_table()

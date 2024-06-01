@@ -23,12 +23,11 @@ class User:
         return cloned_user
 
 class MessageStruct:
-    def __init__(self, content: str, date_published: str, sender_username: str, conversation_title: str, votes=0, id=None):
+    def __init__(self, content: str, date_published: str, sender_username: str, conversation_title: str, id=None):
         self.content = content
         self.date_published = date_published
         self.sender_username = sender_username
         self.conversation_title = conversation_title
-        self.votes = votes
         self.id = id
 
 
@@ -45,3 +44,10 @@ class UsersMessagesVotes:
         self.username = username
         self.message_id = message_id
         self.vote = vote
+
+
+class UsersConversationsPins:
+    def __init__(self, username, conversation_title, pin):
+        self.username = username
+        self.conversation_title = conversation_title
+        self.pin = pin
