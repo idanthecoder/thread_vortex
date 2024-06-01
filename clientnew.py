@@ -1071,12 +1071,60 @@ class MessageGUI(ctk.CTkFrame):
                 #messagebox.showinfo("Info", "added new message")  
 
 
+class FailedToload(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        
+        self.title("Thread Vortex")
+        self.geometry("800x600")
+        self.iconpath = ImageTk.PhotoImage(file=os.path.join("assets","Thread Vortex no text logo.png"))
+        self.wm_iconbitmap()
+        self.iconphoto(False, self.iconpath)
+
+        # Top Frame
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, fill=ctk.X, expand=True, padx=20, pady=10)
+
+        # Logo
+        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))  # Replace with your logo path
+        self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(400, 246))
+        self.logo_label = ctk.CTkLabel(self.top_frame, image=self.logo_icon, text="")
+        self.logo_label.pack(pady=5)
+
+        credits_label = ctk.CTkLabel(self.top_frame, text="Created by Idan Barkin", font=("Roboto", 40))
+        credits_label.pack(pady=5)
+        # Left Frame
+        self.center_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.center_frame.pack(side=ctk.BOTTOM, fill=ctk.BOTH, expand=True, padx=20, pady=20)
+
+        # Chat icon
+        failed_icon_image = Image.open(os.path.join("assets","failed icon 1.png"))  # Replace with your icon path
+        self.failed_icon = ctk.CTkImage(light_image=failed_icon_image, size=(100, 100))
+        self.failed_icon_label = ctk.CTkLabel(self.center_frame, image=self.failed_icon, text="")
+        self.failed_icon_label.pack(pady=5)
+        
+        self.failed_label = ctk.CTkLabel(self.center_frame, text="Server currently offline.\nTry connecting again later.", font=("Roboto", 40))
+        self.failed_label.pack(pady=5)
+
+
 if __name__ == "__main__":
     # perhaps I should have a global: connected_status and maybe in_conversation to know where to return to after reading user's data.
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(('localhost', 12345))
-    user_profile = None
-    handle_encryption = EncryptionHandler(client_socket)
-    #get_conversations_thread = threading.Thread(target=get_conversations)
-    app = App()
-    app.mainloop()
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect(('localhost', 12345))
+        user_profile = None
+        handle_encryption = EncryptionHandler(client_socket)
+        #get_conversations_thread = threading.Thread(target=get_conversations)
+        app = App()
+        app.mainloop()
+    except ConnectionRefusedError:
+        print("Connection refused")
+        failed_load_app = FailedToload()
+        failed_load_app.mainloop()
+        
+    # doesn't work. need to figure out a way to show client ht failed load screen if the server disconnects
+    #except ConnectionResetError:
+    #    print("Connection reset")
+    #    app.destroy()
+    #    failed_load_app = FailedToload()
+    #    failed_load_app.mainloop()
