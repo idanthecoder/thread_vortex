@@ -204,7 +204,8 @@ class MessagesORM(object):
                 content TEXT,
                 date_published TEXT,
                 sender_username TEXT,
-                conversation_title TEXT
+                conversation_title TEXT,
+                votes INTEGER
             )
         ''')
 
@@ -212,9 +213,9 @@ class MessagesORM(object):
 
     def insert_message(self, message: classes.MessageStruct):
         self.cursor.execute('''
-            INSERT INTO Messages (content, date_published, sender_username, conversation_title)
-            VALUES (?, ?, ?, ?)
-        ''', (message.content, message.date_published, message.sender_username, message.conversation_title))
+            INSERT INTO Messages (content, date_published, sender_username, conversation_title, votes)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (message.content, message.date_published, message.sender_username, message.conversation_title, message.votes))
         self.commit()
 
     def print_table(self, table_name):
@@ -302,6 +303,18 @@ class MessagesORM(object):
         if len(search_in_data) == 0:
             return []
         return search_in_data
+
+    #def change_vote(self, message_id, vote):
+    #    # vote is either 1 or -1
+    #    self.cursor.execute(f'''
+    #                UPDATE Messages
+    #                SET votes = votes + ?
+    #                WHERE message_id = ?''', (vote, message_id))
+    #    self.commit()
+    
+    #def alter_table(self):
+    #    self.cursor.execute("ALTER TABLE Messages ADD COLUMN votes INTEGER DEFAULT 0")
+    #    self.commit()
         
 #---------------------------------
 
@@ -435,3 +448,93 @@ class ConversationsORM(object):
             return []
         return data[0]
 
+
+class UserMessageVotesORM(object):
+    def __init__(self, db_name="UsersMessagesVotes.db"):
+        self.db_name = db_name
+        self.conn = None  # will store the DB connection
+        self.cursor = None  # will store the DB connection cursor
+
+    def connect(self):
+        """
+        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
+        :parameter: nothing
+        :return: nothing
+        """
+
+        self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
+        self.cursor = self.conn.cursor()
+
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
+
+    def commit(self):
+        self.conn.commit()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS UsersMessagesVotes (
+                user_message_vote_id INTEGER PRIMARY KEY,
+                username TEXT,
+                message_id INTEGER,
+                vote INTEGER
+            )
+        ''')
+
+        self.commit()
+
+    def insert_message_vote(self, votes: classes.UsersMessagesVotes):
+        self.cursor.execute('''
+            INSERT INTO UsersMessagesVotes (username, message_id, vote)
+            VALUES (?, ?, ?)
+        ''', (votes.username, votes.message_id, votes.vote))
+        self.commit()
+
+    def print_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        print(table_list)
+
+    def get_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        return table_list
+    
+    def change_vote(self, username, message_id, vote):
+        # vote is either 1 or -1 or 0
+        
+        self.cursor.execute(f'''
+                    UPDATE UsersMessagesVotes
+                    SET vote = ?
+                    WHERE message_id = ? AND username = ?''', (vote, message_id, username))
+        self.commit()
+    
+    def already_voted(self, username, message_id):
+        # search for the existence of the name and mail
+        vote_status = self.cursor.execute(f'''SELECT * FROM UsersMessagesVotes
+                                   WHERE message_id = ? AND username = ? ''', (message_id, username)).fetchall()
+        
+        # return if both mail and name are unavailable or just one of them
+        if vote_status :
+            return vote_status[0]
+        
+        # a valid regiseration
+        return "new vote"
+    
+    def get_votes(self, message_id):
+        vote_amount = self.cursor.execute(f'''SELECT SUM(vote) FROM UsersMessagesVotes
+                                   WHERE message_id = ? ''', (message_id,)).fetchall()
+        
+        if vote_amount[0][0] is None:
+            return 0
+        return vote_amount[0][0]
+
+
+#if __name__ == "__main__":
+#    orm = UserMessageVotesORM()
+#    orm.connect()
+#    gorm = orm.get_votes(73)
+#    print(gorm[0][0])
+#    print()
+#    #msgorm = MessagesORM()
+#    #msgorm.connect()
+#    #msgorm.alter_table()
