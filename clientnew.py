@@ -87,6 +87,9 @@ class App(ctk.CTk):
             # if no kwargs are given or if their values are the same then user tkraise to switch frames
             self.frame = self.saved_frames[class_to_show]
             self.frame.tkraise()
+            if class_to_show == InsideConversationGUI:
+                self.frame.check_continuously.set(value=True)
+                self.frame.repeat_request()
         else:
             # if it is a totally new class then create an instance of it and grid it
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
