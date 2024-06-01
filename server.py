@@ -25,6 +25,9 @@ conversations_db = SQL_ORM.ConversationsORM()
 conversations_db.connect()
 conversations_db.create_table()
 
+messages_votes_db = SQL_ORM.UserMessageVotesORM()
+messages_votes_db.connect()
+messages_votes_db.create_table()
 
 
 class TCPServer:
@@ -169,9 +172,9 @@ class TCPServer:
                         
                         for i, msg in enumerate(first_messages):
                             if i == len(first_messages)-1:
-                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}"
+                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}_{msg[5]}"
                             else:
-                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}|"
+                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}_{msg[5]}|"
                         
                     #self.clients_conversations[client_socket] = self.apart_titles_from_lst(first_messages)
                 
@@ -185,9 +188,9 @@ class TCPServer:
                         
                         for i, msg in enumerate(new_first_messages):
                             if i == len(new_first_messages)-1:
-                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}"
+                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}_{msg[5]}"
                             else:
-                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}|"
+                                to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}_{msg[5]}|"
                 
                 elif command == "GETUSR":
                     data_users = users_db.get_data_from_username(fields[0])
@@ -218,6 +221,79 @@ class TCPServer:
                                 to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}"
                             else:
                                 to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}|"
+                
+                elif command == "VOTMSG":
+                    vote = fields[0]
+                    username = fields[1]
+                    message_id = fields[2]
+                    
+                    #messages_db.change_vote(int(message_id), int(vote))
+                    
+                    vote_status = messages_votes_db.already_voted(username, message_id)
+                    
+                    if vote_status == "new vote":
+                        if vote == "upvote":
+                            vt = 1
+                        elif vote == "downvote":
+                            vt = -1
+                        message_vote = classes.UsersMessagesVotes(username, message_id, vt)
+                        messages_votes_db.insert_message_vote(message_vote)
+                        
+                        vote_number = messages_votes_db.get_votes(message_id)
+                        if vote == "upvote":
+                            to_send = f"VOTMSG|upvote|{vote_number}" 
+                        elif vote == "downvote":
+                            to_send = f"VOTMSG|downvote|{vote_number}"                     
+                    else:
+                        if vote_status[3] == 1:
+                            if vote == "upvote":
+                                messages_votes_db.change_vote(username, message_id, 0)
+                                vote_number = messages_votes_db.get_votes(message_id)
+                                to_send = f"VOTMSG|no_vote|{vote_number}"
+                            elif vote == "downvote":
+                                messages_votes_db.change_vote(username, message_id, -1)
+                                vote_number = messages_votes_db.get_votes(message_id)
+                                to_send = f"VOTMSG|downvote|{vote_number}"
+                        elif vote_status[3] == -1:
+                            if vote == "upvote":
+                                messages_votes_db.change_vote(username, message_id, 1)
+                                vote_number = messages_votes_db.get_votes(message_id)
+                                to_send = f"VOTMSG|upvote|{vote_number}"
+                            elif vote == "downvote":
+                                messages_votes_db.change_vote(username, message_id, 0)
+                                vote_number = messages_votes_db.get_votes(message_id)
+                                to_send = f"VOTMSG|no_vote|{vote_number}"
+                        elif vote_status[3] == 0:
+                            if vote == "upvote":
+                                messages_votes_db.change_vote(username, message_id, 1)
+                                vote_number = messages_votes_db.get_votes(message_id)
+                                to_send = f"VOTMSG|upvote|{vote_number}"
+                            elif vote == "downvote":
+                                messages_votes_db.change_vote(username, message_id, -1)
+                                vote_number = messages_votes_db.get_votes(message_id)
+                                to_send = f"VOTMSG|downvote|{vote_number}"
+                                
+                
+                elif command == "GEVMSG":
+                    username = fields[0]
+                    message_id = fields[1]
+                    vote_status = messages_votes_db.already_voted(username, message_id)
+                    vote_number = messages_votes_db.get_votes(message_id)
+                    
+                    if vote_status == "new vote":
+                        to_send = f"GEVMSG|no_vote|{vote_number}"
+                    else:
+                        if vote_status[3] == 1:
+                            to_send = f"GEVMSG|upvote|{vote_number}"
+                        elif vote_status[3] == -1:
+                            to_send = f"GEVMSG|downvote|{vote_number}"
+                        else:
+                            to_send = f"GEVMSG|no_vote|{vote_number}"
+
+                    
+                                
+                        
+                    
                     
 
                     

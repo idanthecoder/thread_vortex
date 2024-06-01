@@ -800,20 +800,22 @@ class HandleMessages:
             return
         
         if data[0] == "FSTMSG":
+            messages = []
             if data[1] != "no_messages":
-                messages = []
+                
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
+                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[5], msg_splt[0]))
         
-        self.draw_messages(messages)
+                self.draw_messages(messages)
         return messages
 
     def draw_messages(self, messages: list[classes.MessageStruct]):
         for msg in messages:
-            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username)
+            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username, msg.conversation_title, str(msg.id), str(msg.votes))
     
     def request_more(self):
+        # {self.messages_lst[-1] won't cause out of range error beacause when creating a conversation the client will write the first message in that conversation
         send_with_size(client_socket, handle_encryption.cipher_data(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].id}"))
         data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
@@ -824,23 +826,31 @@ class HandleMessages:
                 messages = []
                 for msgdata in data[1:]:
                     msg_splt = msgdata.split('_')
-                    self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
-                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
+                    self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[5], msg_splt[0]))
+                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[5], msg_splt[0]))
                 self.draw_messages(messages)
                 #self.messages_lst.append(messages)   
 
 
 class MessageGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, content, date, username):
+    def __init__(self, parent, controller, content, date, username, conversation_title, id, votes):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
+        
+        self.id = id
+        
         #self.user_label = ctk.CTkLabel(self, text=username)
         #self.user_label.pack(side=ctk.LEFT, padx=10)
         self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=InsideConversationGUI, edited_profile=False))
         self.user_button.pack(side=ctk.LEFT, padx=10)
+        
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
+        ####
+        
+        self.set_voting()
+        
         ####
         mute_icon_image = Image.open(fp=os.path.join("assets","mute icon 1.png"))
         self.mute_icon = ctk.CTkImage(light_image=mute_icon_image, size=(30, 30))
@@ -858,7 +868,93 @@ class MessageGUI(ctk.CTkFrame):
         #self.content_label.insert("1.0", content)
         #self.content_label.configure(state=ctk.DISABLED)
         #self.content_label.pack(side=ctk.TOP, pady=35)
+    
+    def set_voting(self):
+        # get buttons state (has user already votes here?), and the current number of votes on this message
+        send_with_size(client_socket, handle_encryption.cipher_data(f"GEVMSG|{user_profile.username}|{self.id}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "GEVMSG":
+            self.votes = data[2]
+            self.current_vote = data[1]
+            
+            upvote_image = Image.open(fp=os.path.join("assets","upvote icon 1.png"))
+            self.upvote_icon = ctk.CTkImage(light_image=upvote_image, size=(30, 30))
+            self.upvote_button = ctk.CTkButton(self, width=50, text="", image=self.upvote_icon, command=self.upvote_action)
+            self.upvote_button.pack(side=ctk.RIGHT, padx=10)
+            
+            self.votes_label = ctk.CTkLabel(self, text=self.votes)
+            self.votes_label.pack(side=ctk.RIGHT, padx=10)
+            
+            downvote_icon_image = Image.open(fp=os.path.join("assets","downvote icon 1.png"))
+            self.downvote_icon = ctk.CTkImage(light_image=downvote_icon_image, size=(30, 30))
+            self.downvote_button = ctk.CTkButton(self, width=50, text="", image=self.downvote_icon, command=self.downvote_action)
+            self.downvote_button.pack(side=ctk.RIGHT, padx=10)
+            
+            if self.current_vote == "upvote":
+                self.upvote_button.configure(fg_color="#66FF00", hover_color="#32CD32")
+            elif self.current_vote == "downvote":
+                self.downvote_button.configure(fg_color="#ED2939", hover_color="#E60026")
 
+
+    def upvote_action(self):
+        if self.current_vote == "upvote":
+            # reset the color
+            self.upvote_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
+        elif self.current_vote == "downvote":
+            # reset the color
+            self.downvote_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
+            # change to green
+            self.upvote_button.configure(fg_color="#66FF00", hover_color="#32CD32")
+        else:
+            # change to green
+            self.upvote_button.configure(fg_color="#66FF00", hover_color="#32CD32")
+        
+        send_with_size(client_socket, handle_encryption.cipher_data(f"VOTMSG|upvote|{user_profile.username}|{self.id}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "VOTMSG":
+            self.votes = data[2]
+            self.votes_label.configure(text=self.votes)
+            if data[1] == "upvote":
+                self.current_vote = "upvote"
+            elif data[1] == "downvote":
+                self.current_vote = "downvote"
+            elif data[1] == "no_vote":
+                self.current_vote = "no_vote"
+    
+    def downvote_action(self):
+        if self.current_vote == "upvote":
+            # reset the color
+            self.upvote_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
+            # change to red
+            self.downvote_button.configure(fg_color="#ED2939", hover_color="#E60026")
+        elif self.current_vote == "downvote":
+            # reset the color
+            self.downvote_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
+        else:
+            # chage to red
+            self.downvote_button.configure(fg_color="#ED2939", hover_color="#E60026")
+            
+        send_with_size(client_socket, handle_encryption.cipher_data(f"VOTMSG|downvote|{user_profile.username}|{self.id}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "VOTMSG":
+            self.votes = data[2]
+            self.votes_label.configure(text=self.votes)
+            if data[1] == "upvote":
+                self.current_vote = "upvote"
+            elif data[1] == "downvote":
+                self.current_vote = "downvote"
+            elif data[1] == "no_vote":
+                self.current_vote = "no_vote"
+                #messagebox.showinfo("Info", "added new message")  
 
 
 if __name__ == "__main__":
