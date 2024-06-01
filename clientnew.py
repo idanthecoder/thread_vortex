@@ -104,6 +104,15 @@ class App(ctk.CTk):
             if class_to_show != SearchPage:
                 self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
+    
+    def change_pinned(self, conversation_title, **kwargs):
+        if "how_to_change" in kwargs:
+            how_to_change = kwargs.pop("how_to_change")
+        
+        if how_to_change == "add":
+            self.saved_frames[HomePage_Connected].add_pinned_conversation(conversation_title)
+        elif how_to_change == "remove":
+            self.saved_frames[HomePage_Connected].remove_pinned_conversation(conversation_title)
         
 
 #class OpeningScreen(ctk.CTkFrame):
@@ -286,6 +295,8 @@ class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
         global user_profile
         super().__init__(parent)
+        
+        self.controller = controller
                 
         # Top bar with logo, search bar, and login/register buttons
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
@@ -328,11 +339,15 @@ class HomePage_Connected(ctk.CTkFrame):
         self.reconfiguration_label.pack(side=ctk.TOP, padx=1.25, pady=1.25)
         
         optionmenu_var = ctk.StringVar(value="")  # set initial value
-        reconfiguration_combobox = ctk.CTkOptionMenu(master=self.configuration_frame,
+        self.reconfiguration_combobox = ctk.CTkOptionMenu(master=self.configuration_frame,
                                        values=["", "Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"],
                                        command=self.reconfigure_conversations_screen,
                                        variable=optionmenu_var)
-        reconfiguration_combobox.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        self.reconfiguration_combobox.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        
+        
+        # choose favorite conversations
+        self.setup_favourites()
         
         
         self.topics = ["Gaming", "Cyber", "Tech", "Fashion", "Sports", "History", "Politics", "Physics"]
@@ -365,6 +380,43 @@ class HomePage_Connected(ctk.CTkFrame):
         clear_frame(self.content_area)
         
         self.conversation_handler.reconfigure_conversation_order(choice)
+    
+    def enter_pinned_conversation(self, choice):
+        if choice != "":
+            self.controller.show_page(InsideConversationGUI, title=choice, class_return_to=HomePage_Connected)
+    
+    def setup_favourites(self):
+        #self.pinned_conversations = []
+        self.pinned_frame = ctk.CTkFrame(self.sidebar, fg_color="white")
+        self.pinned_frame.pack()
+        self.pinned_convs_titles = [""]
+        # GUVCNV get user pinned conversations
+        send_with_size(client_socket, handle_encryption.cipher_data(f"GUPCNV|{user_profile.username}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "GUPCNV":
+            if data[1] != "no_pins":
+                for convtitle in data[1:]:
+                    self.pinned_convs_titles.append(convtitle)
+    
+        optionmenu_var = ctk.StringVar(value="")  # set initial value
+        self.pinned_combobox = ctk.CTkOptionMenu(master=self.pinned_frame,
+                                       values=self.pinned_convs_titles,
+                                       command=self.enter_pinned_conversation,
+                                       variable=optionmenu_var)
+        self.pinned_combobox.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+    
+    def add_pinned_conversation(self, conversation_title):
+        self.pinned_convs_titles.append(conversation_title)
+        self.pinned_combobox.configure(values=self.pinned_convs_titles)
+    
+    def remove_pinned_conversation(self, conversation_title):
+        # in the future when conversations can be deleted I will get ValueError here.
+        self.pinned_convs_titles.remove(conversation_title)
+        self.pinned_combobox.configure(values=self.pinned_convs_titles)
+    
     
 def clear_frame(frame):
     for widgets in frame.winfo_children():
@@ -679,10 +731,15 @@ class ConversationGUI(ctk.CTkFrame):
             self.pins_label.configure(text=self.pins)
             if data[1] == "pinned":
                 self.current_pin_status = "pinned"
+                
+                self.controller.change_pinned(self.title, how_to_change="add")
+                #self.controller.add_pinned_conversation(self.title, )
             elif data[1] == "no_pin":
                 self.current_pin_status = "no_pin"
-        
-        
+                
+                self.controller.change_pinned(self.title, how_to_change="remove")
+                #self.controllerremove_pinned_conversation(self.title)
+
 
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class

@@ -611,13 +611,27 @@ class UserConversationPinsORM(object):
             return 0
         return pin_amount[0][0]
 
+    def get_specific_user_pins(self, username):
+        user_pins = self.cursor.execute(f'''SELECT conversation_title FROM UsersConversationsPins
+                                   WHERE username = ? AND pin != 0 ''', (username,)).fetchall()
+        
+        # list of tuples (each tuple has one value only in it)
+        return user_pins
+
 
 #if __name__ == "__main__":
-#    #orm = UserMessageVotesORM()
-#    #orm.connect()
-#    #gorm = orm.get_votes(73)
-#    #print(gorm[0][0])
-#    #print()
-#    msgorm = MessagesORM()
-#    msgorm.connect()
-#    msgorm.dealter_table()
+#    ##orm = UserMessageVotesORM()
+#    ##orm.connect()
+#    ##gorm = orm.get_votes(73)
+#    ##print(gorm[0][0])
+#    ##print()
+#    #msgorm = MessagesORM()
+#    #msgorm.connect()
+#    #msgorm.dealter_table()
+#    
+#    ormp = UserConversationPinsORM()
+#    ormp.connect()
+#    ge = ormp.get_specific_user_pins("Igor")
+#    print(ge)
+#    print()
+

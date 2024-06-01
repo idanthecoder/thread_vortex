@@ -328,6 +328,21 @@ class TCPServer:
                             to_send = f"GEPCNV|pinned|{pin_number}"
                         else:
                             to_send = f"GEPCNV|no_pin|{pin_number}"
+                
+                elif command == "GUPCNV":
+                    username = fields[0]
+                    user_pinned_convs = conversations_pins_db.get_specific_user_pins(username)
+                    
+                    if user_pinned_convs == []:
+                        to_send = "GUPCNV|no_pins"
+                    else:
+                        to_send = "GUPCNV|"
+                        
+                        for i, pinned_convs in enumerate(user_pinned_convs):
+                            if i == len(user_pinned_convs)-1:
+                                to_send += f"{pinned_convs[0]}"
+                            else:
+                                to_send += f"{pinned_convs[0]}|"
 
 
                     
