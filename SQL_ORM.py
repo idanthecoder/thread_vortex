@@ -532,6 +532,86 @@ class UserMessageVotesORM(object):
         return vote_amount[0][0]
 
 
+class UserConversationPinsORM(object):
+    def __init__(self, db_name="UserConversationPins.db"):
+        self.db_name = db_name
+        self.conn = None  # will store the DB connection
+        self.cursor = None  # will store the DB connection cursor
+
+    def connect(self):
+        """
+        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
+        :parameter: nothing
+        :return: nothing
+        """
+
+        self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
+        self.cursor = self.conn.cursor()
+
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
+
+    def commit(self):
+        self.conn.commit()
+
+    def create_table(self):
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS UsersConversationsPins (
+                user_conversation_pin_id INTEGER PRIMARY KEY,
+                username TEXT,
+                conversation_title TEXT,
+                pin INTEGER
+            )
+        ''')
+
+        self.commit()
+
+    def insert_conversation_pin(self, pins: classes.UsersConversationsPins):
+        self.cursor.execute('''
+            INSERT INTO UsersConversationsPins (username, conversation_title, pin)
+            VALUES (?, ?, ?)
+        ''', (pins.username, pins.conversation_title, pins.pin))
+        self.commit()
+
+    def print_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        print(table_list)
+
+    def get_table(self, table_name):
+        table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
+        return table_list
+    
+    def change_pin(self, username, conversation_title, pin):
+        # pin is either 1 or 0
+        
+        self.cursor.execute(f'''
+                    UPDATE UsersConversationsPins
+                    SET pin = ?
+                    WHERE conversation_title = ? AND username = ?''', (pin, conversation_title, username))
+        self.commit()
+    
+    def already_pinned(self, username, conversation_title):
+        # search for the existence of the name and mail
+        vote_status = self.cursor.execute(f'''SELECT * FROM UsersConversationsPins
+                                   WHERE conversation_title = ? AND username = ? ''', (conversation_title, username)).fetchall()
+        
+        # return if both mail and name are unavailable or just one of them
+        if vote_status :
+            return vote_status[0]
+        
+        # a valid regiseration
+        return "new pin"
+    
+    def get_pins(self, conversation_title):
+        pin_amount = self.cursor.execute(f'''SELECT SUM(pin) FROM UsersConversationsPins
+                                   WHERE conversation_title = ? ''', (conversation_title,)).fetchall()
+        
+        if pin_amount[0][0] is None:
+            return 0
+        return pin_amount[0][0]
+
+
 #if __name__ == "__main__":
 #    #orm = UserMessageVotesORM()
 #    #orm.connect()
