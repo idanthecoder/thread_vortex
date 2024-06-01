@@ -127,6 +127,12 @@ import os
 #ctk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
 #ctk.set_default_color_theme("green")  # Themes: "blue" (default), "green", "dark-blue"
 
+
+
+print(f"{str(2).zfill(2)}:{str(5).zfill(2)}")
+
+
+
 app = ctk.CTk()
 app.geometry("800x600")
 app.title("Thread Vortex")
