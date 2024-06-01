@@ -604,6 +604,9 @@ class ConversationGUI(ctk.CTkFrame):
         self.user_button.pack(side=ctk.LEFT, padx=10)
         self.date_label = ctk.CTkLabel(self, text=date)
         self.date_label.pack(side=ctk.RIGHT, padx=10)
+        
+        self.set_pinning()
+        
         ####        
         
         mute_icon_image = Image.open(fp=os.path.join("assets","mute icon 1.png"))
@@ -627,6 +630,57 @@ class ConversationGUI(ctk.CTkFrame):
                 messagebox.showwarning("Warning", "Conversation with restricted access - 18+ only")
                 return
         self.controller.show_page(InsideConversationGUI, title=self.title, class_return_to=self.class_return_to)
+    
+    def set_pinning(self):
+        # get buttons state (has user already pinned here?), and the current number of pins on this conversation
+        send_with_size(client_socket, handle_encryption.cipher_data(f"GEPCNV|{user_profile.username}|{self.title}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "GEPCNV":
+            self.pins = data[2]
+            self.current_pin_status = data[1]
+            
+            pin_image = Image.open(fp=os.path.join("assets","pin icon 2.png"))
+            self.pin_icon = ctk.CTkImage(light_image=pin_image, size=(30, 30))
+            self.pin_button = ctk.CTkButton(self, width=50, text="", image=self.pin_icon, command=self.pin_action)
+            self.pin_button.pack(side=ctk.RIGHT, padx=10)
+            
+            self.pins_label = ctk.CTkLabel(self, text=self.pins)
+            self.pins_label.pack(side=ctk.RIGHT, padx=10)
+            
+            #downvote_icon_image = Image.open(fp=os.path.join("assets","downvote icon 1.png"))
+            #self.downvote_icon = ctk.CTkImage(light_image=downvote_icon_image, size=(30, 30))
+            #self.downvote_button = ctk.CTkButton(self, width=50, text="", image=self.downvote_icon, command=self.downvote_action)
+            #self.downvote_button.pack(side=ctk.RIGHT, padx=10)
+            
+            if self.current_pin_status == "pinned":
+                self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
+            #elif self.current_vote == "downvote":
+            #    self.downvote_button.configure(fg_color="#ED2939", hover_color="#E60026")
+
+
+    def pin_action(self):
+        if self.current_pin_status == "pinned":
+            # reset the color
+            self.pin_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
+        else:
+            # change to yellow
+            self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
+        
+        send_with_size(client_socket, handle_encryption.cipher_data(f"PINCNV|{user_profile.username}|{self.title}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "PINCNV":
+            self.pins = data[2]
+            self.pins_label.configure(text=self.pins)
+            if data[1] == "pinned":
+                self.current_pin_status = "pinned"
+            elif data[1] == "no_pin":
+                self.current_pin_status = "no_pin"
         
         
 

@@ -29,6 +29,10 @@ messages_votes_db = SQL_ORM.UserMessageVotesORM()
 messages_votes_db.connect()
 messages_votes_db.create_table()
 
+conversations_pins_db = SQL_ORM.UserConversationPinsORM()
+conversations_pins_db.connect()
+conversations_pins_db.create_table()
+
 
 class TCPServer:
     def __init__(self, host, port):
@@ -273,7 +277,6 @@ class TCPServer:
                                 vote_number = messages_votes_db.get_votes(message_id)
                                 to_send = f"VOTMSG|downvote|{vote_number}"
                                 
-                
                 elif command == "GEVMSG":
                     username = fields[0]
                     message_id = fields[1]
@@ -289,6 +292,43 @@ class TCPServer:
                             to_send = f"GEVMSG|downvote|{vote_number}"
                         else:
                             to_send = f"GEVMSG|no_vote|{vote_number}"
+                    
+                elif command == "PINCNV":
+                    username = fields[0]
+                    conversation_title = fields[1]
+                    
+                    pin_status = conversations_pins_db.already_pinned(username, conversation_title)
+                    
+                    if pin_status == "new pin":
+                        conversation_pin = classes.UsersConversationsPins(username, conversation_title, 1)
+                        conversations_pins_db.insert_conversation_pin(conversation_pin)
+                        pin_number = conversations_pins_db.get_pins(conversation_title)
+                        
+                        to_send = f"PINCNV|pinned|{pin_number}"
+                    else:
+                        if pin_status[3] == 1:
+                            conversations_pins_db.change_pin(username, conversation_title, 0)
+                            pin_number = conversations_pins_db.get_pins(conversation_title)
+                            to_send = f"PINCNV|no_pin|{pin_number}"
+                        else:
+                            conversations_pins_db.change_pin(username, conversation_title, 1)
+                            pin_number = conversations_pins_db.get_pins(conversation_title)
+                            to_send = f"PINCNV|pinned|{pin_number}"
+                
+                elif command == "GEPCNV":
+                    username = fields[0]
+                    conversation_title = fields[1]
+                    pin_status = conversations_pins_db.already_pinned(username, conversation_title)
+                    pin_number = conversations_pins_db.get_pins(conversation_title)
+                    
+                    if pin_status == "new pin":
+                        to_send = f"GEPCNV|no_pin|{pin_number}"
+                    else:
+                        if pin_status[3] == 1:
+                            to_send = f"GEPCNV|pinned|{pin_number}"
+                        else:
+                            to_send = f"GEPCNV|no_pin|{pin_number}"
+
 
                     
                                 
