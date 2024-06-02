@@ -90,6 +90,8 @@ class App(ctk.CTk):
             if class_to_show == InsideConversationGUI:
                 self.frame.check_continuously.set(value=True)
                 self.frame.repeat_request()
+            #elif class_to_show == HomePage_Connected:
+            #    self.frame.reload_screen()
         else:
             # if it is a totally new class then create an instance of it and grid it
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
@@ -108,11 +110,19 @@ class App(ctk.CTk):
     def change_pinned(self, conversation_title, **kwargs):
         if "how_to_change" in kwargs:
             how_to_change = kwargs.pop("how_to_change")
+        if "class_return_to" in kwargs:
+            class_return_to = kwargs.pop("class_return_to")
         
         if how_to_change == "add":
             self.saved_frames[HomePage_Connected].add_pinned_conversation(conversation_title)
+            if class_return_to == SearchPage:
+                # make sure the gui changes in the homepage as well (the pin number and the color of the button in that conversation)
+                self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually("pin")
         elif how_to_change == "remove":
             self.saved_frames[HomePage_Connected].remove_pinned_conversation(conversation_title)
+            if class_return_to == SearchPage:
+                # make sure the gui changes in the homepage as well (the pin number and the color of the button in that conversation)
+                self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually("unpin")
         
 
 #class OpeningScreen(ctk.CTkFrame):
@@ -417,6 +427,9 @@ class HomePage_Connected(ctk.CTkFrame):
         self.pinned_convs_titles.remove(conversation_title)
         self.pinned_combobox.configure(values=self.pinned_convs_titles)
     
+    #def reload_screen(self):
+    #    clear_frame(self.content_area)
+    #    self.conversation_handler.reload_conversations()
     
 def clear_frame(frame):
     for widgets in frame.winfo_children():
@@ -674,6 +687,7 @@ class ConversationGUI(ctk.CTkFrame):
         ####
         self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= self.enter_conversation)
         self.title_button.pack(side=ctk.TOP, pady=35)
+        
     
     def enter_conversation(self):
         # first we must check the restrictions.
@@ -732,14 +746,29 @@ class ConversationGUI(ctk.CTkFrame):
             if data[1] == "pinned":
                 self.current_pin_status = "pinned"
                 
-                self.controller.change_pinned(self.title, how_to_change="add")
+                self.controller.change_pinned(self.title, how_to_change="add", class_return_to=self.class_return_to)
                 #self.controller.add_pinned_conversation(self.title, )
             elif data[1] == "no_pin":
                 self.current_pin_status = "no_pin"
                 
-                self.controller.change_pinned(self.title, how_to_change="remove")
+                self.controller.change_pinned(self.title, how_to_change="remove", class_return_to=self.class_return_to)
                 #self.controllerremove_pinned_conversation(self.title)
+    
+    def change_pin_manually(self, pin_status):
+        if pin_status == "pin":
+            self.current_pin_status = "pinned"
+            self.pins = str(int(self.pins)+1)
+            self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
+            self.pins_label.configure(text=self.pins)
+        elif pin_status == "unpin":
+            self.current_pin_status = "no_pin"
+            self.pins = str(int(self.pins)-1)
+            self.pin_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
+            self.pins_label.configure(text=self.pins)
 
+            
+        
+    
 
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
@@ -748,7 +777,9 @@ class HandleConversations:
         self.controller = controller
         self.amount = amount
         self.class_return_to = class_return_to
-        if not search_active:
+        self.search_active = search_active
+        if not self.search_active:
+            self.convgui_dict = {}
             self.conversations_lst: list[classes.ConversationStruct] = self.get_initial_conversations()
         self.search_conversations_lst = []
     
@@ -770,7 +801,10 @@ class HandleConversations:
 
     def draw_conversations(self, conversations):
         for conv in conversations:
-            ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date, conv.restrictions, self.class_return_to)
+            convgui = ConversationGUI(self.frame_area, self.controller, conv.title, conv.creator_username, conv.creation_date, conv.restrictions, self.class_return_to)
+            if not self.search_active:
+                self.convgui_dict[conv.title] = convgui
+            
     
     def request_more(self):
         send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{self.amount}"))
@@ -822,6 +856,9 @@ class HandleConversations:
                     self.search_conversations_lst.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                     found_conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                 self.draw_conversations(found_conversations)
+    
+    #def reload_conversations(self):
+    #    self.draw_conversations(self.conversations_lst)
 
 
 class InsideConversationGUI(ctk.CTkFrame):
@@ -1110,13 +1147,13 @@ class FailedToload(ctk.CTk):
 if __name__ == "__main__":
     # perhaps I should have a global: connected_status and maybe in_conversation to know where to return to after reading user's data.
     try:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect(('localhost', 12345))
-        user_profile = None
-        handle_encryption = EncryptionHandler(client_socket)
-        #get_conversations_thread = threading.Thread(target=get_conversations)
-        app = App()
-        app.mainloop()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+            client_socket.connect(('localhost', 12345))
+            user_profile = None
+            handle_encryption = EncryptionHandler(client_socket)
+            #get_conversations_thread = threading.Thread(target=get_conversations)
+            app = App()
+            app.mainloop()
     except ConnectionRefusedError:
         print("Connection refused")
         failed_load_app = FailedToload()
