@@ -387,10 +387,10 @@ class HomePage_Connected(ctk.CTkFrame):
         if choice == "":
             return
         
-        if choice != "Sort By Popularity" and choice != "Sort By Popularity (Reverse)":
-            clear_frame(self.content_area)
-        else:
-            forget_frame_widgets(self.content_area)
+        #if choice != "Sort By Popularity" and choice != "Sort By Popularity (Reverse)":
+        #    clear_frame(self.content_area)
+        #else:
+        forget_frame_widgets(self.content_area)
         
         self.conversation_handler.reconfigure_conversation_order(choice)
     
@@ -670,6 +670,7 @@ class ConversationGUI(ctk.CTkFrame):
         self.title = title
         self.restrictions = restrictions
         self.class_return_to = class_return_to
+        self.date = date
         
         self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=class_return_to, edited_profile=False))
         self.user_button.pack(side=ctk.LEFT, padx=10)
@@ -843,13 +844,17 @@ class HandleConversations:
     def reconfigure_conversation_order(self, order_by):
         #self.conversations_lst
         if order_by == "Sort Alphabetically":
-            self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title)
+            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title)
+            self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].title))}
         elif order_by == "Sort Alphabetically (Reverse)":
-            self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title, reverse=True)
+            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title, reverse=True)
+            self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].title), reverse=True)}
         elif order_by == "Sort Chronologically":
-            self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date)
+            #self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date)
+            self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (self.sort_by_creation_date(item[1].date)))}
         elif order_by == "Sort Chronologically (Reverse)":
-            self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date, reverse=True)
+            #self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date, reverse=True)
+            self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (self.sort_by_creation_date(item[1].date)), reverse=True)}
         elif order_by == "Sort By Popularity":
             #sorted_convgui_dict = dict(sorted(self.convgui_dict.items(), key=lambda item: item[1].pins))
             #self.conversations_lst = 
@@ -871,18 +876,18 @@ class HandleConversations:
             # Sort the list based on the order of keys in the sorted dictionary
             #self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins))
 
-        if order_by != "Sort By Popularity" and order_by != "Sort By Popularity (Reverse)":
-            self.draw_conversations(self.conversations_lst)
-        else:
-            self.draw_dict()
+        #if order_by != "Sort By Popularity" and order_by != "Sort By Popularity (Reverse)":
+        #    self.draw_conversations(self.conversations_lst)
+        #else:
+        self.draw_dict()
     
     def draw_dict(self):
         for item in self.convgui_dict.items():
             item[1].re_pack()
             
     
-    def sort_by_creation_date(self, conversation):
-        creation_date = datetime.datetime.strptime(conversation.creation_date, "%d/%m/%Y %H:%M")
+    def sort_by_creation_date(self, date):
+        creation_date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M")
         return creation_date
     
     def search_all(self, search_for):
