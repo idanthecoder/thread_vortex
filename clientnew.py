@@ -381,13 +381,16 @@ class HomePage_Connected(ctk.CTkFrame):
             controller.show_page(OpeningScreen)
     
     def reconfigure_conversations_screen(self, choice):
-        "Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"
+        #"Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"
         
         # if the default string was chosen then anyway nothing will change
         if choice == "":
             return
         
-        clear_frame(self.content_area)
+        if choice != "Sort By Popularity" and choice != "Sort By Popularity (Reverse)":
+            clear_frame(self.content_area)
+        else:
+            forget_frame_widgets(self.content_area)
         
         self.conversation_handler.reconfigure_conversation_order(choice)
     
@@ -435,6 +438,9 @@ def clear_frame(frame):
     for widgets in frame.winfo_children():
         widgets.destroy()
 
+def forget_frame_widgets(frame):
+    for widgets in frame.winfo_children():
+        widgets.forget()
 
 class SearchPage(ctk.CTkFrame):
     def __init__(self, parent, controller, str_to_search):
@@ -774,6 +780,10 @@ class ConversationGUI(ctk.CTkFrame):
             #self.pins = str(int(self.pins)-1)
             self.pin_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
             self.pins_label.configure(text=self.pins)
+    
+    def re_pack(self):
+        self.pack_propagate(False)
+        self.pack(fill=ctk.X, padx=4, pady=2)
 
             
         
@@ -845,26 +855,30 @@ class HandleConversations:
             #self.conversations_lst = 
             #for title in sorted_convgui_dict.keys():
             # Sort the dictionary by 'pins' attribute
-            sorted_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins))}
+            # for some reason for normal order reverse is needed
+            self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins), reverse=True)}
 
             # Sort the list based on the order of keys in the sorted dictionary
             
             # for some reason for normal order reverse is needed
-            self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins), reverse=True)
+            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins), reverse=True)
                 
         elif order_by == "Sort By Popularity (Reverse)":
             #sorted_convgui_dict = dict(sorted(self.convgui_dict.items(), key=lambda item: item[1].pins, reverse=True))
             #self.conversations_lst = 
-            sorted_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins))}
+            self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins))}
 
             # Sort the list based on the order of keys in the sorted dictionary
-            self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins))
+            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins))
 
-        self.draw_conversations(self.conversations_lst)
+        if order_by != "Sort By Popularity" and order_by != "Sort By Popularity (Reverse)":
+            self.draw_conversations(self.conversations_lst)
+        else:
+            self.draw_dict()
     
-    #def draw_dict(self):
-    #    for item in self.convgui_dict.items():
-    #        item[1]
+    def draw_dict(self):
+        for item in self.convgui_dict.items():
+            item[1].re_pack()
             
     
     def sort_by_creation_date(self, conversation):
