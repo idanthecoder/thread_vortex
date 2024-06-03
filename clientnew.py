@@ -100,10 +100,12 @@ class App(ctk.CTk):
                 self.frame = class_to_show(self.container, self, kwargs.pop("title"), kwargs.pop("class_return_to"))
             elif "str_to_search" in kwargs:
                 self.frame = class_to_show(self.container, self, kwargs.pop("str_to_search"))
+            elif "mail" in kwargs and "callback" in kwargs:
+                self.frame = class_to_show(self.container, self, kwargs.pop("mail"), kwargs.pop("callback"))
             else:
                 self.frame = class_to_show(self.container, self)
             
-            if class_to_show != SearchPage:
+            if class_to_show != SearchPage and class_to_show != EnterVerificationCode:
                 self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
     
@@ -189,67 +191,75 @@ class OpeningScreen(ctk.CTkFrame):
 class RegisterPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-
-        label = ctk.CTkLabel(self, text="Register Page", font=("Helvetica", 16))
-        label.pack(pady=10, padx=10)
-
-        name_label = ctk.CTkLabel(self, text="Name:")
-        name_label.pack()
-        name_entry = ctk.CTkEntry(self)
-        name_entry.pack()
-
-        password_label = ctk.CTkLabel(self, text="Password:")
-        password_label.pack()
-        password_entry = ctk.CTkEntry(self, show="*")
-        password_entry.pack()
-
-        email_label = ctk.CTkLabel(self, text="Email:")
-        email_label.pack()
-        email_entry = ctk.CTkEntry(self)
-        email_entry.pack()
         
+        self.controller = controller
+
+        self.label = ctk.CTkLabel(self, text="Register Page", font=("Helvetica", 16))
+        self.label.pack(pady=10, padx=10)
+
+        self.name_label = ctk.CTkLabel(self, text="Name:")
+        self.name_label.pack()
+        self.name_entry = ctk.CTkEntry(self)
+        self.name_entry.pack()
+
+        self.password_label = ctk.CTkLabel(self, text="Password:")
+        self.password_label.pack()
+        self.password_entry = ctk.CTkEntry(self, show="*")
+        self.password_entry.pack()
+
+        self.email_label = ctk.CTkLabel(self, text="Email:")
+        self.email_label.pack()
+        self.email_entry = ctk.CTkEntry(self)
+        self.email_entry.pack()
         
-        age_label = ctk.CTkLabel(self, text="Age:")
-        age_label.pack()
-        age_entry = ctk.CTkEntry(self)
-        age_entry.pack()
+        self.age_label = ctk.CTkLabel(self, text="Age:")
+        self.age_label.pack()
+        self.age_entry = ctk.CTkEntry(self)
+        self.age_entry.pack()
 
-        gender_label = ctk.CTkLabel(self, text="Gender:")
-        gender_label.pack()
-        gender_entry = ctk.CTkEntry(self)
-        gender_entry.pack()
+        self.gender_label = ctk.CTkLabel(self, text="Gender:")
+        self.gender_label.pack()
+        self.gender_entry = ctk.CTkEntry(self)
+        self.gender_entry.pack()
 
-        country_label = ctk.CTkLabel(self, text="Country:")
-        country_label.pack()
-        country_entry = ctk.CTkEntry(self)
-        country_entry.pack()
+        self.country_label = ctk.CTkLabel(self, text="Country:")
+        self.country_label.pack()
+        self.country_entry = ctk.CTkEntry(self)
+        self.country_entry.pack()
 
-        occupation_label = ctk.CTkLabel(self, text="Occupation:")
-        occupation_label.pack()
-        occupation_entry = ctk.CTkEntry(self)
-        occupation_entry.pack()
+        self.occupation_label = ctk.CTkLabel(self, text="Occupation:")
+        self.occupation_label.pack()
+        self.occupation_entry = ctk.CTkEntry(self)
+        self.occupation_entry.pack()
 
-        description_label = ctk.CTkLabel(self, text="Description:")
-        description_label.pack()
-        description_entry = ctk.CTkTextbox(self)
-        description_entry.pack()
+        self.description_label = ctk.CTkLabel(self, text="Description:")
+        self.description_label.pack()
+        self.description_entry = ctk.CTkTextbox(self)
+        self.description_entry.pack()
 
-        register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(controller, name_entry.get(), password_entry.get(), email_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
-        register_button.pack(pady=10)
+        self.register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(self.name_entry.get(), self.password_entry.get(), self.email_entry.get(), self.age_entry.get(), self.gender_entry.get(), self.country_entry.get(), self.occupation_entry.get(), self.description_entry.get("1.0", "end-1c")))
+        self.register_button.pack(pady=10)
         
-        go_back_button = ctk.CTkButton(self, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
-        go_back_button.pack(pady=10)
+        self.go_back_button = ctk.CTkButton(self, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
+        self.go_back_button.pack(pady=10)
     
-    def user_register_h(self, controller, username, password, mail, age, gender, country, occupation, description):
-        global user_profile
+    def user_register_h(self, username, password, mail, age, gender, country, occupation, description):
+        #global user_profile
         
         current_date = datetime.datetime.now()
         date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
+        self.temp_user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
         
-        user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
-        self.user_register(controller, user_profile)
+        self.verification(mail)
+        
+        
+        #current_date = datetime.datetime.now()
+        #date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
+        #
+        #user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
+        #self.user_register(user_profile)
     
-    def user_register(self, controller, user_profile: classes.User):
+    def user_register(self, user_profile: classes.User):
         send_with_size(client_socket, handle_encryption.cipher_data(f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}"))
         data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
         if len(data) <= 1:
@@ -257,7 +267,104 @@ class RegisterPage(ctk.CTkFrame):
         
         if data[0] == "REGUSR":
             if data[1] == "new_user":
-                controller.show_page(HomePage_Connected)
+                self.controller.show_page(HomePage_Connected)
+    
+    def verification(self, mail):
+        self.controller.show_page(EnterVerificationCode, mail=mail, callback=self.after_verification)
+
+    def after_verification(self):
+        global user_profile
+        user_profile = self.temp_user_profile
+        self.temp_user_profile = None
+        
+        self.user_register(user_profile)
+        
+        
+
+class EnterVerificationCode(ctk.CTkFrame):
+    def __init__(self, parent, controller, mail, callback):
+        global current_conf_code
+        super().__init__(parent)
+        
+        self.controller = controller
+        current_conf_code = email_handler.send_conformation_mail(mail)
+        self.callback = callback
+
+        self.label = ctk.CTkLabel(self, text="Verification Page", font=("Helvetica", 16))
+        self.label.pack(pady=10, padx=10)
+
+        self.verify_label = ctk.CTkLabel(self, text="Enter verification code (sent in mail):")
+        self.verify_label.pack()
+        self.verify_entry = ctk.CTkEntry(self)
+        self.verify_entry.pack()
+        
+        self.confirm_button = ctk.CTkButton(self, text="Confirm", command=lambda: self.check_verify(self.verify_entry.get()))
+        self.confirm_button.pack(pady=10)
+        
+        self.timer = DynamicTime(self, self.controller, mail)
+        
+        self.go_back_button = ctk.CTkButton(self, text="Return to register screen", command=self.return_and_stop_time)
+        self.go_back_button.pack(pady=10)
+    
+    def check_verify(self, code):
+        if code == current_conf_code:
+            # verified
+            self.callback()
+        else:
+            messagebox.showwarning("Warning", "Wrong code")
+    
+    def return_and_stop_time(self):
+        self.timer.stop_timer_smoothly()
+        
+        self.controller.show_page(RegisterPage)
+
+
+class DynamicTime(ctk.CTkFrame):
+    def __init__(self, parent, controller, mail):
+        super().__init__(parent)
+        
+        self.pack(pady=5)
+        
+        self.controller = controller
+        self.mail = mail
+        
+        # Initialize timer duration (in seconds)
+        self.timer_duration = 300  # 5 minutes
+        
+        # Create timer label
+        self.timer_label = ctk.CTkLabel(self, text="")
+        self.timer_label.pack(pady=20)
+        
+        self.update_continuously = ctk.BooleanVar(master=self, value=True)
+
+        # Start the timer
+        self.start_timer()
+    
+    def start_timer(self):
+        self.update_timer()
+    
+    def update_timer(self):
+        global current_conf_code
+        if self.update_continuously.get():
+            if self.timer_duration > 0:
+                minutes, seconds = divmod(self.timer_duration, 60)
+                self.timer_label.configure(text=f"Time left: {minutes:02d}:{seconds:02d}")
+                self.timer_duration -= 1
+                self.job = self.after(1000, self.update_timer)  # Update every second
+            else:
+                #self.timer_label.configure(text="Time's up! Click 'Extend' to add 5 more minutes.")
+                self.timer_label.configure(text="")
+                if messagebox.askokcancel("Notify", "Time's up! Click 'OK' to resend conformation code and add 5 more minutes."):
+                    self.timer_duration = 300
+                    current_conf_code = email_handler.send_conformation_mail(self.mail)
+                    self.update_timer()
+                else:
+                    self.stop_timer_smoothly()
+                    self.controller.show_page(RegisterPage)
+            
+    def stop_timer_smoothly(self):
+        self.update_continuously = ctk.BooleanVar(master=self, value=False)
+        self.after_cancel(self.job)              
 
 
 class LoginPage(ctk.CTkFrame):
@@ -723,16 +830,8 @@ class ConversationGUI(ctk.CTkFrame):
             self.pins_label = ctk.CTkLabel(self, text=self.pins)
             self.pins_label.pack(side=ctk.RIGHT, padx=10)
             
-            #downvote_icon_image = Image.open(fp=os.path.join("assets","downvote icon 1.png"))
-            #self.downvote_icon = ctk.CTkImage(light_image=downvote_icon_image, size=(30, 30))
-            #self.downvote_button = ctk.CTkButton(self, width=50, text="", image=self.downvote_icon, command=self.downvote_action)
-            #self.downvote_button.pack(side=ctk.RIGHT, padx=10)
-            
             if self.current_pin_status == "pinned":
                 self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
-            #elif self.current_vote == "downvote":
-            #    self.downvote_button.configure(fg_color="#ED2939", hover_color="#E60026")
-
 
     def pin_action(self):
         if self.current_pin_status == "pinned":

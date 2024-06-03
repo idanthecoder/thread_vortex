@@ -5,8 +5,7 @@ import secrets
 
 
 email_sender = "threadvortexinc@gmail.com"
-email_password = "secret"
-
+email_password = "nbip ovsv ielo zvie"
 
 def send_conformation_mail(email_receiver):
     """
@@ -46,3 +45,5 @@ Thanks for usings our servers, we hope you enjoy your time!
     
     return confirmation_code
     
+if __name__ == "__main__":
+    send_conformation_mail("altermeinego@gmail.com")
