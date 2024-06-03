@@ -841,11 +841,31 @@ class HandleConversations:
         elif order_by == "Sort Chronologically (Reverse)":
             self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date, reverse=True)
         elif order_by == "Sort By Popularity":
-            pass
+            #sorted_convgui_dict = dict(sorted(self.convgui_dict.items(), key=lambda item: item[1].pins))
+            #self.conversations_lst = 
+            #for title in sorted_convgui_dict.keys():
+            # Sort the dictionary by 'pins' attribute
+            sorted_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins))}
+
+            # Sort the list based on the order of keys in the sorted dictionary
+            
+            # for some reason for normal order reverse is needed
+            self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins), reverse=True)
+                
         elif order_by == "Sort By Popularity (Reverse)":
-            pass
-        
+            #sorted_convgui_dict = dict(sorted(self.convgui_dict.items(), key=lambda item: item[1].pins, reverse=True))
+            #self.conversations_lst = 
+            sorted_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins))}
+
+            # Sort the list based on the order of keys in the sorted dictionary
+            self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins))
+
         self.draw_conversations(self.conversations_lst)
+    
+    #def draw_dict(self):
+    #    for item in self.convgui_dict.items():
+    #        item[1]
+            
     
     def sort_by_creation_date(self, conversation):
         creation_date = datetime.datetime.strptime(conversation.creation_date, "%d/%m/%Y %H:%M")
