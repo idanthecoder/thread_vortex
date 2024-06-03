@@ -117,12 +117,12 @@ class App(ctk.CTk):
             self.saved_frames[HomePage_Connected].add_pinned_conversation(conversation_title)
             if class_return_to == SearchPage:
                 # make sure the gui changes in the homepage as well (the pin number and the color of the button in that conversation)
-                self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually("pin")
+                self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually()
         elif how_to_change == "remove":
             self.saved_frames[HomePage_Connected].remove_pinned_conversation(conversation_title)
             if class_return_to == SearchPage:
                 # make sure the gui changes in the homepage as well (the pin number and the color of the button in that conversation)
-                self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually("unpin")
+                self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually()
         
 
 #class OpeningScreen(ctk.CTkFrame):
@@ -754,15 +754,24 @@ class ConversationGUI(ctk.CTkFrame):
                 self.controller.change_pinned(self.title, how_to_change="remove", class_return_to=self.class_return_to)
                 #self.controllerremove_pinned_conversation(self.title)
     
-    def change_pin_manually(self, pin_status):
-        if pin_status == "pin":
-            self.current_pin_status = "pinned"
-            self.pins = str(int(self.pins)+1)
+    def change_pin_manually(self):
+        send_with_size(client_socket, handle_encryption.cipher_data(f"GEPCNV|{user_profile.username}|{self.title}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "GEPCNV":
+            self.pins = data[2]
+            self.current_pin_status = data[1]
+            
+        if self.current_pin_status == "pinned":
+            #self.current_pin_status = "pinned"
+            #self.pins = str(int(self.pins)+1)
             self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
             self.pins_label.configure(text=self.pins)
-        elif pin_status == "unpin":
-            self.current_pin_status = "no_pin"
-            self.pins = str(int(self.pins)-1)
+        elif self.current_pin_status == "no_pin":
+            #self.current_pin_status = "no_pin"
+            #self.pins = str(int(self.pins)-1)
             self.pin_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
             self.pins_label.configure(text=self.pins)
 
