@@ -343,6 +343,13 @@ class TCPServer:
                                 to_send += f"{pinned_convs[0]}"
                             else:
                                 to_send += f"{pinned_convs[0]}|"
+                
+                elif command == "NPSUSR":
+                    email = fields[0]
+                    new_password = fields[1]
+                    
+                    users_db.update_password_by_mail(email, new_password)
+                    to_send = "NPSUSR|password_updated"
 
 
                     

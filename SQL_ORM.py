@@ -106,6 +106,24 @@ class UsernamePasswordORM(object):
                             SET password = ?, salt = ?
                             WHERE username = ? ''', (hashed_password, salt, username))
         self.commit()
+    
+    def update_password_by_mail(self, mail, password):
+        """
+        Process: update a user's password, and give it a new salt
+        :parameter: mail (string), password (string)
+        :return: Nothing
+        """
+        
+        # get the global pepper, generate new salt and hash them with the password
+        salt = hash_handler.gen_salt()
+        pepper = hash_handler.get_global_pepper()
+        hashed_password = hash_handler.hash_password(pepper + salt + password)
+        
+        # change the password and the hash
+        self.cursor.execute(f'''UPDATE Users
+                            SET password = ?, salt = ?
+                            WHERE mail = ? ''', (hashed_password, salt, mail))
+        self.commit()
 
     
     def registeration_checks(self, username, mail):

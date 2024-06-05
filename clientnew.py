@@ -100,12 +100,14 @@ class App(ctk.CTk):
                 self.frame = class_to_show(self.container, self, kwargs.pop("title"), kwargs.pop("class_return_to"))
             elif "str_to_search" in kwargs:
                 self.frame = class_to_show(self.container, self, kwargs.pop("str_to_search"))
-            elif "mail" in kwargs and "callback" in kwargs:
-                self.frame = class_to_show(self.container, self, kwargs.pop("mail"), kwargs.pop("callback"))
+            elif "mail" in kwargs and "callback" in kwargs and "class_return_to":
+                self.frame = class_to_show(self.container, self, kwargs.pop("mail"), kwargs.pop("callback"), kwargs.pop("class_return_to"))
+            elif "mail" in kwargs:
+                self.frame = class_to_show(self.container, self, kwargs.pop("mail"))
             else:
                 self.frame = class_to_show(self.container, self)
             
-            if class_to_show != SearchPage and class_to_show != EnterVerificationCode:
+            if class_to_show != SearchPage and class_to_show != EnterVerificationCode and class_to_show != ChoosePassword:
                 self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
     
@@ -174,18 +176,21 @@ class OpeningScreen(ctk.CTkFrame):
         chat_icon_image = Image.open(os.path.join("assets","conversation icon 2.png"))  # Replace with your icon path
         self.chat_icon = ctk.CTkImage(light_image=chat_icon_image, size=(100, 100))
         self.chat_label = ctk.CTkLabel(self.left_frame, image=self.chat_icon, text="")
-        self.chat_label.pack(pady=20)
+        self.chat_label.pack(pady=10)
 
         self.login_button = ctk.CTkButton(self.left_frame, text="Log-in", command=lambda: controller.show_page(LoginPage), width=120, height=32, font=("Roboto", 14))
-        self.login_button.pack(pady=10)
-
+        self.login_button.pack(pady=5)
+        
+        self.forgot_password_button = ctk.CTkButton(self.left_frame, text="Forgot password", command=lambda: controller.show_page(ForgotPassword), width=120, height=32, font=("Roboto", 14))
+        self.forgot_password_button.pack(pady=5)
+        
         new_icon_image = Image.open(os.path.join("assets","new icon 2.png"))  # Replace with your icon path
         self.new_icon = ctk.CTkImage(light_image=new_icon_image, size=(100, 100))
         self.new_label = ctk.CTkLabel(self.right_frame, image=self.new_icon, text="")
-        self.new_label.pack(pady=20)
+        self.new_label.pack(pady=5)
 
         self.register_button = ctk.CTkButton(self.right_frame, text="Register", command=lambda: controller.show_page(RegisterPage), width=120, height=32, font=("Roboto", 14))
-        self.register_button.pack(pady=10)
+        self.register_button.pack(pady=5)
 
 
 class RegisterPage(ctk.CTkFrame):
@@ -268,9 +273,20 @@ class RegisterPage(ctk.CTkFrame):
         if data[0] == "REGUSR":
             if data[1] == "new_user":
                 self.controller.show_page(HomePage_Connected)
+                return
+            elif data[1] == "name_mail_taken":
+                messagebox.showwarning("Warning", "Username and mail already in use")
+            elif data[1] == "name_taken":
+                messagebox.showwarning("Warning", "Username already in use")
+            elif data[1] == "mail_taken":
+                messagebox.showwarning("Warning", "Username already in use")
+            
+            self.controller.show_page(RegisterPage)
+
+
     
     def verification(self, mail):
-        self.controller.show_page(EnterVerificationCode, mail=mail, callback=self.after_verification)
+        self.controller.show_page(EnterVerificationCode, mail=mail, callback=self.after_verification, class_return_to=RegisterPage)
 
     def after_verification(self):
         global user_profile
@@ -282,13 +298,14 @@ class RegisterPage(ctk.CTkFrame):
         
 
 class EnterVerificationCode(ctk.CTkFrame):
-    def __init__(self, parent, controller, mail, callback):
+    def __init__(self, parent, controller, mail, callback, class_return_to):
         global current_conf_code
         super().__init__(parent)
         
         self.controller = controller
         current_conf_code = email_handler.send_conformation_mail(mail)
         self.callback = callback
+        self.class_return_to = class_return_to
 
         self.label = ctk.CTkLabel(self, text="Verification Page", font=("Helvetica", 16))
         self.label.pack(pady=10, padx=10)
@@ -303,7 +320,7 @@ class EnterVerificationCode(ctk.CTkFrame):
         
         self.timer = DynamicTime(self, self.controller, mail)
         
-        self.go_back_button = ctk.CTkButton(self, text="Return to register screen", command=self.return_and_stop_time)
+        self.go_back_button = ctk.CTkButton(self, text="Return to previous screen", command=self.return_and_stop_time)
         self.go_back_button.pack(pady=10)
     
     def check_verify(self, code):
@@ -316,7 +333,7 @@ class EnterVerificationCode(ctk.CTkFrame):
     def return_and_stop_time(self):
         self.timer.stop_timer_smoothly()
         
-        self.controller.show_page(RegisterPage)
+        self.controller.show_page(self.class_return_to)
 
 
 class DynamicTime(ctk.CTkFrame):
@@ -407,6 +424,76 @@ class LoginPage(ctk.CTkFrame):
                 user_profile = classes.User(data[2], None, data[3], data[4], data[5], data[6], data[7], data[8], data[9])
                 controller.show_page(HomePage_Connected)
 
+
+class ForgotPassword(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        
+        self.controller = controller
+        
+        self.email_label = ctk.CTkLabel(self, text="Email:")
+        self.email_label.pack()
+        self.email_entry = ctk.CTkEntry(self)
+        self.email_entry.pack()
+        
+        self.verify_mail_button = ctk.CTkButton(self, text="Verify Email", command=self.go_verify)
+        self.verify_mail_button.pack(pady=10)
+
+        #new_password_button = ctk.CTkButton(self, text="Login", command=lambda: self.user_login(controller, name_entry.get(), password_entry.get(), email_entry.get()))
+        #new_password_button.pack(pady=10)
+        
+        self.go_back_button = ctk.CTkButton(self, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
+        self.go_back_button.pack(pady=10)
+    
+    def go_verify(self):
+        self.mail = self.email_entry.get()
+        self.controller.show_page(EnterVerificationCode, mail=self.mail, callback=self.choose_new_password, class_return_to=ForgotPassword)
+    
+    def choose_new_password(self):
+        self.controller.show_page(ChoosePassword, mail=self.mail)
+    
+    #def send_new_password_server(self, new_password):
+    #    send_with_size(client_socket, handle_encryption.cipher_data(f"NPSUSR|{self.mail}|{new_password}"))
+    #    data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+    #    if len(data) <= 1:
+    #        return
+    #    
+    #    if data[0] == "NPSUSR":
+    #        if data[1] == "password_updated":
+    #            messagebox.showinfo("Info", "Password updated successfully")
+    #            self.controller.show_page(LoginPage)
+
+
+class ChoosePassword(ctk.CTkFrame):
+    def __init__(self, parent, controller, mail):
+        super().__init__(parent)
+        
+        self.controller = controller
+        self.mail = mail
+        
+        self.new_password_label = ctk.CTkLabel(self, text="Enter new password:")
+        self.new_password_label.pack()
+        self.new_password_entry = ctk.CTkEntry(self)
+        self.new_password_entry.pack()
+        self.new_password_button = ctk.CTkButton(self, text="Set new password", command=lambda: self.send_new_password_server(self.new_password_entry.get()))
+        self.new_password_button.pack()
+        
+        self.go_back_button = ctk.CTkButton(self, text="Return to forgot password screen", command=lambda: controller.show_page(ForgotPassword))
+        self.go_back_button.pack(pady=10)
+    
+    
+    def send_new_password_server(self, new_password):
+        send_with_size(client_socket, handle_encryption.cipher_data(f"NPSUSR|{self.mail}|{new_password}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "NPSUSR":
+            if data[1] == "password_updated":
+                messagebox.showinfo("Info", "Password updated successfully")
+                self.controller.show_page(LoginPage)
+        
+        
 
 class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
