@@ -423,6 +423,8 @@ class LoginPage(ctk.CTkFrame):
             if data[1] == "correct_identification":
                 user_profile = classes.User(data[2], None, data[3], data[4], data[5], data[6], data[7], data[8], data[9])
                 controller.show_page(HomePage_Connected)
+            elif data[1] == "failed_identification":
+                messagebox.showerror("Error", "False user data")
 
 
 class ForgotPassword(ctk.CTkFrame):
@@ -1195,7 +1197,8 @@ class HandleMessages:
                 self.draw_messages(messages)
         return messages
 
-    def draw_messages(self, messages: list[classes.MessageStruct]):
+    def draw_messages(self, messages):
+        # messages: list[classes.MessageStruct]
         for msg in messages:
             MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username, msg.conversation_title, str(msg.id))
     
