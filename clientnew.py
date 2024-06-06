@@ -127,6 +127,12 @@ class App(ctk.CTk):
             if class_return_to == SearchPage:
                 # make sure the gui changes in the homepage as well (the pin number and the color of the button in that conversation)
                 self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually()
+    
+    def reset_saved_frames(self):
+        self.saved_frames.clear()
+        self.frame = OpeningScreen(self.container, self)
+        self.saved_frames[OpeningScreen] = self.frame
+        self.frame.grid(row=0, column=0, sticky="nsew")
         
 
 #class OpeningScreen(ctk.CTkFrame):
@@ -574,7 +580,8 @@ class HomePage_Connected(ctk.CTkFrame):
     
     def disconnect(self, controller):
         if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
-            controller.show_page(OpeningScreen)
+            controller.reset_saved_frames()
+            #controller.show_page(OpeningScreen)
     
     def reconfigure_conversations_screen(self, choice):
         #"Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"
