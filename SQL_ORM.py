@@ -254,8 +254,7 @@ class MessagesORM(object):
     def delete_message(self, message_id):
         self.cursor.execute(f'''
                     DELETE FROM Messages
-                    WHERE message_id = {message_id}
-                ''')
+                    WHERE message_id = ? ''', (message_id,))
         self.commit()
 
     def get_whole_col(self, subject):

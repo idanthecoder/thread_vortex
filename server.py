@@ -184,6 +184,8 @@ class TCPServer:
                 
                 elif command == "MORMSG":
                     new_first_messages = messages_db.get_first_new_messages(fields[1], fields[2], int(fields[0]))
+                    
+                    print(f"message id is: {fields[2]}")
 
                     if new_first_messages == []:
                         to_send = "MORMSG|no_messages"
@@ -350,6 +352,13 @@ class TCPServer:
                     
                     users_db.update_password_by_mail(email, new_password)
                     to_send = "NPSUSR|password_updated"
+                
+                elif command == "DELMSG":
+                    id = fields[0]
+                    
+                    messages_db.delete_message(id)
+                    
+                    to_send = "DELMSG|success"
 
 
                     

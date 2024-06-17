@@ -245,7 +245,7 @@ class RegisterPage(ctk.CTkFrame):
 
         self.description_label = ctk.CTkLabel(self, text="Description:")
         self.description_label.pack()
-        self.description_entry = ctk.CTkTextbox(self)
+        self.description_entry = ctk.CTkTextbox(self, wrap="word")
         self.description_entry.pack()
 
         self.register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(self.name_entry.get(), self.password_entry.get(), self.email_entry.get(), self.age_entry.get(), self.gender_entry.get(), self.country_entry.get(), self.occupation_entry.get(), self.description_entry.get("1.0", "end-1c")))
@@ -721,7 +721,7 @@ class EditProfilePage(ctk.CTkFrame):
 
         description_label = ctk.CTkLabel(self, text="Description:")
         description_label.pack()
-        description_entry = ctk.CTkTextbox(self)
+        description_entry = ctk.CTkTextbox(self, wrap="word")
         description_entry.insert('1.0', user_profile.description)
         description_entry.pack()
 
@@ -829,7 +829,7 @@ class CreateNewConversation(ctk.CTkFrame):
         
         message_content_label = ctk.CTkLabel(self, text="Message content:")
         message_content_label.pack()
-        message_content_entry = ctk.CTkTextbox(self)
+        message_content_entry = ctk.CTkTextbox(self, wrap="word")
         message_content_entry.pack()
         
         restriction_label = ctk.CTkLabel(self, text="Restrict access:")
@@ -1129,8 +1129,8 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.bottom_bar.pack_propagate(False)
         self.bottom_bar.pack(side=ctk.BOTTOM, fill=ctk.X)
 
-        self.message_content_entry = ctk.CTkTextbox(self.bottom_bar, width=520, border_color="black", border_width=2)
-        self.message_content_entry.pack(padx=5, pady=2, side=ctk.LEFT)
+        self.message_content_entry = ctk.CTkTextbox(self.bottom_bar, border_color="black", border_width=2, wrap="word")
+        self.message_content_entry.pack(padx=5, pady=2, side=ctk.LEFT, fill=ctk.X, expand=True)
         
         self.post_message_button = ctk.CTkButton(self.bottom_bar, fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", text="Post", command=lambda: self.post_message(self.message_content_entry.get("1.0", "end-1c")))
         self.post_message_button.pack(padx=5, pady=2, side=ctk.RIGHT, fill=ctk.Y)
@@ -1207,7 +1207,7 @@ class HandleMessages:
     def draw_messages(self, messages):
         # messages: list[classes.MessageStruct]
         for msg in messages:
-            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username, msg.conversation_title, str(msg.id))
+            MessageGUI(self.frame_area, self.controller, msg.content, msg.date_published, msg.sender_username, msg.conversation_title, str(msg.id), self)
     
     def request_more(self):
         # {self.messages_lst[-1] won't cause out of range error beacause when creating a conversation the client will write the first message in that conversation
@@ -1224,16 +1224,22 @@ class HandleMessages:
                     self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
                     messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
                 self.draw_messages(messages)
-                #self.messages_lst.append(messages)   
+                #self.messages_lst.append(messages)
+    
+    def delete_message_from_lst(self, id_message):
+        self.messages_lst = [message for message in self.messages_lst if message.id != id_message]
+        print()
+           
 
 
 class MessageGUI(ctk.CTkFrame):
-    def __init__(self, parent, controller, content, date, username, conversation_title, id):
+    def __init__(self, parent, controller, content, date, username, conversation_title, id, the_handler):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
-        self.pack_propagate(False)
+        #self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
         
         self.id = id
+        self.the_handler = the_handler
         
         #self.user_label = ctk.CTkLabel(self, text=username)
         #self.user_label.pack(side=ctk.LEFT, padx=10)
@@ -1257,13 +1263,51 @@ class MessageGUI(ctk.CTkFrame):
         self.speech_text_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(content,)).start())
         self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
         ####
-        self.content_label = ctk.CTkLabel(self, text=content)
-        self.content_label.pack(side=ctk.TOP, pady=35)
-        #self.content_label = ctk.CTkTextbox(self)
-        #self.content_label.insert("1.0", content)
-        #self.content_label.configure(state=ctk.DISABLED)
-        #self.content_label.pack(side=ctk.TOP, pady=35)
-    
+        #self.content_label = ctk.CTkLabel(self, text=content)
+        #self.content_label.pack(side=ctk.LEFT)
+        #self.content_label = ctk.CTkTextbox(self, fg_color="white", border_color="black", border_width=2, height=150, wrap="word")
+        self.content_label = ctk.CTkTextbox(self, fg_color="#E5E4E2", height=150, wrap="word")
+        self.content_label.tag_config("center", justify="center")
+        self.content_label.insert("1.0", content, "center")
+        self.content_label.configure(spacing1=20)
+        #self.content_label.tag_add("center", "1.0", "end")
+        self.content_label.configure(state=ctk.DISABLED)
+        self.content_label.pack(side=ctk.LEFT, pady=10, fill=ctk.X, expand=True)
+        
+        
+        if username == user_profile.username:
+            self.configure(fg_color="#BEDBED")
+            self.user_button.configure(fg_color="#BEDBED")
+            self.date_label.configure(fg_color="#BEDBED")
+            self.mute_button.configure(fg_color="#BEDBED")
+            self.speech_text_button.configure(fg_color="#BEDBED")
+            self.content_label.configure(fg_color="#ADD8E6")
+            self.votes_frame.configure(fg_color="#BEDBED")
+            
+            self.change_frame = ctk.CTkFrame(self, fg_color="#ADD8E6", border_color="black", border_width=2)
+            self.change_frame.pack(side=ctk.BOTTOM, pady=5)
+            
+            delete_image = Image.open(fp=os.path.join("assets","delete icon 1.png"))
+            self.delete_icon = ctk.CTkImage(light_image=delete_image, size=(30, 30))
+            self.delete_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.delete_icon, command=self.delete_message)
+            self.delete_button.pack(side=ctk.RIGHT, pady=3)
+            #self.delete_button = 
+            
+            # edit and delete
+            
+    def delete_message(self):
+        self.destroy()
+        
+        send_with_size(client_socket, handle_encryption.cipher_data(f"DELMSG|{self.id}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "DELMSG":
+            if data[1] == "success":
+                self.the_handler.delete_message_from_lst(self.id)
+                messagebox.showinfo("Info", "message deleted successfully")
+        
     def set_voting(self):
         # get buttons state (has user already votes here?), and the current number of votes on this message
         send_with_size(client_socket, handle_encryption.cipher_data(f"GEVMSG|{user_profile.username}|{self.id}"))
@@ -1275,18 +1319,21 @@ class MessageGUI(ctk.CTkFrame):
             self.votes = data[2]
             self.current_vote = data[1]
             
+            self.votes_frame = ctk.CTkFrame(self, fg_color="white", border_color="black", border_width=2)
+            self.votes_frame.pack(side=ctk.RIGHT, padx=10, pady=5)
+            
             upvote_image = Image.open(fp=os.path.join("assets","upvote icon 1.png"))
             self.upvote_icon = ctk.CTkImage(light_image=upvote_image, size=(30, 30))
-            self.upvote_button = ctk.CTkButton(self, width=50, text="", image=self.upvote_icon, command=self.upvote_action)
-            self.upvote_button.pack(side=ctk.RIGHT, padx=10)
+            self.upvote_button = ctk.CTkButton(self.votes_frame, width=50, text="", image=self.upvote_icon, command=self.upvote_action)
+            self.upvote_button.pack(side=ctk.TOP, padx=10, pady=3)
             
-            self.votes_label = ctk.CTkLabel(self, text=self.votes)
-            self.votes_label.pack(side=ctk.RIGHT, padx=10)
+            self.votes_label = ctk.CTkLabel(self.votes_frame, text=self.votes)
+            self.votes_label.pack(padx=10, pady=3)
             
             downvote_icon_image = Image.open(fp=os.path.join("assets","downvote icon 1.png"))
             self.downvote_icon = ctk.CTkImage(light_image=downvote_icon_image, size=(30, 30))
-            self.downvote_button = ctk.CTkButton(self, width=50, text="", image=self.downvote_icon, command=self.downvote_action)
-            self.downvote_button.pack(side=ctk.RIGHT, padx=10)
+            self.downvote_button = ctk.CTkButton(self.votes_frame, width=50, text="", image=self.downvote_icon, command=self.downvote_action)
+            self.downvote_button.pack(side=ctk.BOTTOM, padx=10, pady=3)
             
             if self.current_vote == "upvote":
                 self.upvote_button.configure(fg_color="#66FF00", hover_color="#32CD32")
