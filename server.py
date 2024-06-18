@@ -359,6 +359,13 @@ class TCPServer:
                     messages_db.delete_message(id)
                     
                     to_send = "DELMSG|success"
+                
+                elif command == "EDTMSG":
+                    id = fields[0]
+                    content = fields[1]
+                    messages_db.update_content(id, content)
+                    
+                    to_send = "EDTMSG|success"
 
 
                     

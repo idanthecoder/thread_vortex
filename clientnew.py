@@ -1291,6 +1291,16 @@ class MessageGUI(ctk.CTkFrame):
             self.delete_icon = ctk.CTkImage(light_image=delete_image, size=(30, 30))
             self.delete_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.delete_icon, command=self.delete_message)
             self.delete_button.pack(side=ctk.RIGHT, pady=3)
+            
+            edit_image = Image.open(fp=os.path.join("assets","edit icon 1.png"))
+            self.edit_icon = ctk.CTkImage(light_image=edit_image, size=(30, 30))
+            self.edit_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.edit_icon, command=self.edit_message)
+            self.edit_button.pack(side=ctk.RIGHT, pady=3)
+            
+            confirm_image = Image.open(fp=os.path.join("assets","confirm icon 1.png"))
+            self.confirm_icon = ctk.CTkImage(light_image=confirm_image, size=(30, 30))
+            self.confirm_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.confirm_icon, command=self.confirm_edit)
+
             #self.delete_button = 
             
             # edit and delete
@@ -1307,6 +1317,27 @@ class MessageGUI(ctk.CTkFrame):
             if data[1] == "success":
                 self.the_handler.delete_message_from_lst(self.id)
                 messagebox.showinfo("Info", "message deleted successfully")
+    
+    def edit_message(self):
+        self.content_label.configure(state=ctk.NORMAL)
+        self.edit_button.forget()
+        self.confirm_button.pack(side=ctk.RIGHT, pady=3)
+    
+    def confirm_edit(self):
+        self.content_label.configure(state=ctk.DISABLED)
+        self.confirm_button.forget()
+        self.edit_button.pack(side=ctk.RIGHT, pady=3)
+        
+        content = self.content_label.get("1.0", "end-1c")
+        send_with_size(client_socket, handle_encryption.cipher_data(f"EDTMSG|{self.id}|{content}"))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+        if len(data) <= 1:
+            return
+        
+        if data[0] == "EDTMSG":
+            if data[1] == "success":
+                messagebox.showinfo("Info", "message edited successfully")
+
         
     def set_voting(self):
         # get buttons state (has user already votes here?), and the current number of votes on this message

@@ -250,6 +250,13 @@ class MessagesORM(object):
                     WHERE message_id = {message_id}
                 ''')
         self.commit()
+    
+    def update_content(self, message_id, content):
+        self.cursor.execute(f'''
+                    UPDATE Messages
+                    SET content = ?
+                    WHERE message_id = ?''', (content, message_id))
+        self.commit()        
 
     def delete_message(self, message_id):
         self.cursor.execute(f'''
