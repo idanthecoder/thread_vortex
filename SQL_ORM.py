@@ -71,11 +71,10 @@ class UsernamePasswordORM(object):
                 ''')
         self.commit()
 
-    def delete_user(self, user_id):
+    def delete_user(self, username):
         self.cursor.execute(f'''
                     DELETE FROM Users
-                    WHERE user_id = {user_id}
-                ''')
+                    WHERE username = ?''', (username,))
         self.commit()
 
     def get_whole_col(self, subject):
@@ -263,6 +262,12 @@ class MessagesORM(object):
                     DELETE FROM Messages
                     WHERE message_id = ? ''', (message_id,))
         self.commit()
+    
+    def delete_user_messages(self, username):
+        self.cursor.execute(f'''
+                    DELETE FROM Messages
+                    WHERE sender_username = ? ''', (username,))
+        self.commit()
 
     def get_whole_col(self, subject):
         return self.cursor.execute(f'''SELECT {subject} FROM Messages''').fetchall()
@@ -411,6 +416,13 @@ class ConversationsORM(object):
                 ''')
         self.commit()
 
+    def change_to_deleted(self, username):
+        self.cursor.execute(f'''
+                    UPDATE Conversations
+                    SET creator_username = ?
+                    WHERE creator_username = ?''', ("[DELETED]", username))
+        self.commit()
+    
     def get_whole_col(self, subject):
         return self.cursor.execute(f'''SELECT {subject} FROM Conversations''').fetchall()
 

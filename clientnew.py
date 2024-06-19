@@ -764,32 +764,42 @@ class ViewProfile(ctk.CTkFrame):
             # i will deal with this later. in this case a will ask the server for the data of the user who has this username, the sever will take it from the database - send to client and it will be displayed.
             user_data = self.get_other_user_data()
             if user_data == "no_user":
-                messagebox.showwarning("Warning", "No such user exists in the database")
-                self.go_back_h()
+                #messagebox.showwarning("Warning", "No such user exists in the database")
+                user_data = classes.User("[DELETED]", "", "", "", "", "", "", "", "")
+            elif user_data == "user_deleted":
+                #messagebox.showwarning("Warning", "This account was deleted")
+                user_data = classes.User("[DELETED]", "", "", "", "", "", "", "", "")
         
-        name_label = ctk.CTkLabel(self, text=f"The info page of \"{user_data.username}\"")
-        name_label.pack(pady=2)
+        if user_data.username != "[DELETED]":
+            name_label = ctk.CTkLabel(self, text=f"The info page of \"{user_data.username}\"")
+            name_label.pack(pady=2)
 
-        email_label = ctk.CTkLabel(self, text=f"Email: {user_data.mail}")
-        email_label.pack()
-        
-        age_label = ctk.CTkLabel(self, text=f"Age: {user_data.age}")
-        age_label.pack()
+            email_label = ctk.CTkLabel(self, text=f"Email: {user_data.mail}")
+            email_label.pack()
+            
+            age_label = ctk.CTkLabel(self, text=f"Age: {user_data.age}")
+            age_label.pack()
 
-        gender_label = ctk.CTkLabel(self, text=f"Gender: {user_data.gender}")
-        gender_label.pack()
+            gender_label = ctk.CTkLabel(self, text=f"Gender: {user_data.gender}")
+            gender_label.pack()
 
-        country_label = ctk.CTkLabel(self, text=f"Country: {user_data.country}")
-        country_label.pack()
+            country_label = ctk.CTkLabel(self, text=f"Country: {user_data.country}")
+            country_label.pack()
 
-        occupation_label = ctk.CTkLabel(self, text=f"Occupation: {user_data.occupation}")
-        occupation_label.pack()
-        
-        member_since_label = ctk.CTkLabel(self, text=f"Member Since: {user_data.date_creation}")
-        member_since_label.pack()
+            occupation_label = ctk.CTkLabel(self, text=f"Occupation: {user_data.occupation}")
+            occupation_label.pack()
+            
+            member_since_label = ctk.CTkLabel(self, text=f"Member Since: {user_data.date_creation}")
+            member_since_label.pack()
 
-        description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
-        description_label.pack()
+            description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
+            description_label.pack()
+            
+            delete_user_button = ctk.CTkButton(self, text="Delete user", command= self.delete_user)
+            delete_user_button.pack(pady=10)
+        else:
+            info_label = ctk.CTkLabel(self, text=f"This account exists no longer!")
+            info_label.pack()
         
         go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: self.go_back_h())
         go_back_button.pack(pady=10)
@@ -801,17 +811,33 @@ class ViewProfile(ctk.CTkFrame):
             return
         
         if data[0] == "GETUSR":
-            if data[1] != "no_user":
+            if data[1] == "no_user":
+                return "no_user"
+            elif data[1] == "user_deleted":
+                return "user_deleted"
+            else: 
                 user_data = classes.User(data[1], None, data[2], data[3], data[4], data[5], data[6], data[7], data[8])
                 return user_data
-            else:
-                return "no_user"
     
     def go_back_h(self):
         if self.class_return_to == SearchPage:
             self.controller.show_page(self.class_return_to, str_to_search=last_search) 
         else:
-            self.controller.show_page(self.class_return_to) 
+            self.controller.show_page(self.class_return_to)
+    
+    def delete_user(self):
+        if messagebox.askokcancel("Warning", "You are about to permenantly delete your profile and be disconnected"):
+            send_with_size(client_socket, handle_encryption.cipher_data(f"DELUSR|{self.profile_username}"))
+            data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
+            if len(data) <= 1:
+                return
+            
+            if data[0] == "DELUSR":
+                if data[1] == "done":
+                    # disconnect from the account
+                    self.controller.reset_saved_frames()
+            
+        
 
 class CreateNewConversation(ctk.CTkFrame):
     def __init__(self, parent, controller):

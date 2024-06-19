@@ -200,12 +200,14 @@ class TCPServer:
                 
                 elif command == "GETUSR":
                     data_users = users_db.get_data_from_username(fields[0])
-                    if len(data_users) == []:
+                    if len(data_users) == 0:
                         to_send = "GETUSR|no_user"
                     else:
                         user_data = data_users[0]
-                        to_send = f"GETUSR|{user_data[1]}|{user_data[4]}|{user_data[5]}|{user_data[6]}|{user_data[7]}|{user_data[8]}|{user_data[9]}|{user_data[10]}"
-                
+                        if user_data[1] != "[DELETED]":
+                            to_send = f"GETUSR|{user_data[1]}|{user_data[4]}|{user_data[5]}|{user_data[6]}|{user_data[7]}|{user_data[8]}|{user_data[9]}|{user_data[10]}"
+                        else:
+                            to_send = "GETUSR|user_deleted"
                 elif command == "SRCCNV":
                     search_in_convs = conversations_db.search_for(fields[0])
                     search_in_msgs = messages_db.search_for(fields[0])
@@ -366,6 +368,14 @@ class TCPServer:
                     messages_db.update_content(id, content)
                     
                     to_send = "EDTMSG|success"
+                
+                elif command == "DELUSR":
+                    username = fields[0]
+                    users_db.delete_user(username)
+                    messages_db.delete_user_messages(username)
+                    conversations_db.change_to_deleted(username)
+                    
+                    to_send = "DELUSR|done"
 
 
                     
