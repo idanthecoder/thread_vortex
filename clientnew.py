@@ -16,6 +16,24 @@ from encryption_handler import EncryptionHandler
 from text_to_speech_handler import speak_text, stop_speech
 
 
+def fail_mechanism():
+    app.destroy()
+    failed_load_app = FailedToload()
+    failed_load_app.mainloop()
+
+def send_and_recieve(data_to_send):
+    try:
+        send_with_size(client_socket, handle_encryption.cipher_data(data_to_send))
+        data = handle_encryption.decipher_data(recv_by_size(client_socket))
+        if data == "":
+            fail_mechanism()
+        else:
+            return data.split('|')
+    except ConnectionResetError:
+        fail_mechanism()
+        
+        
+
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -288,10 +306,7 @@ class RegisterPage(ctk.CTkFrame):
         #self.user_register(user_profile)
     
     def user_register(self, user_profile: classes.User):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
         
         if data[0] == "REGUSR":
             if data[1] == "new_user":
@@ -437,10 +452,7 @@ class LoginPage(ctk.CTkFrame):
     
     def user_login(self, controller, name, password, email):
         global user_profile
-        send_with_size(client_socket, handle_encryption.cipher_data(f"LOGUSR|{name}|{password}|{email}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"LOGUSR|{name}|{password}|{email}")
         
         if data[0] == "LOGUSR":
             if data[1] == "correct_identification":
@@ -508,10 +520,7 @@ class ChoosePassword(ctk.CTkFrame):
     
     
     def send_new_password_server(self, new_password):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"NPSUSR|{self.mail}|{new_password}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"NPSUSR|{self.mail}|{new_password}")
         
         if data[0] == "NPSUSR":
             if data[1] == "password_updated":
@@ -624,10 +633,7 @@ class HomePage_Connected(ctk.CTkFrame):
         self.pinned_frame.pack()
         self.pinned_convs_titles = [""]
         # GUVCNV get user pinned conversations
-        send_with_size(client_socket, handle_encryption.cipher_data(f"GUPCNV|{user_profile.username}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"GUPCNV|{user_profile.username}")
         
         if data[0] == "GUPCNV":
             if data[1] != "no_pins":
@@ -755,10 +761,7 @@ class EditProfilePage(ctk.CTkFrame):
         self.user_edit_profile(controller, user_profile, password)
     
     def user_edit_profile(self, controller, user_profile: classes.User, password):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"EDTUSR|{user_profile.username}|{password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
         
         if data[0] == "EDTUSR":
             if data[1] == "edited_profile":
@@ -812,8 +815,9 @@ class ViewProfile(ctk.CTkFrame):
             description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
             description_label.pack()
             
-            delete_user_button = ctk.CTkButton(self, text="Delete user", command= self.delete_user)
-            delete_user_button.pack(pady=10)
+            if profile_username == user_profile.username:
+                delete_user_button = ctk.CTkButton(self, text="Delete user", command= self.delete_user)
+                delete_user_button.pack(pady=10)
         else:
             info_label = ctk.CTkLabel(self, text=f"This account exists no longer!")
             info_label.pack()
@@ -822,10 +826,7 @@ class ViewProfile(ctk.CTkFrame):
         go_back_button.pack(pady=10)
     
     def get_other_user_data(self):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"GETUSR|{self.profile_username}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"GETUSR|{self.profile_username}")
         
         if data[0] == "GETUSR":
             if data[1] == "no_user":
@@ -844,11 +845,8 @@ class ViewProfile(ctk.CTkFrame):
     
     def delete_user(self):
         if messagebox.askokcancel("Warning", "You are about to permenantly delete your profile and be disconnected"):
-            send_with_size(client_socket, handle_encryption.cipher_data(f"DELUSR|{self.profile_username}"))
-            data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-            if len(data) <= 1:
-                return
-            
+            data = send_and_recieve(f"DELUSR|{self.profile_username}")
+
             if data[0] == "DELUSR":
                 if data[1] == "done":
                     # disconnect from the account
@@ -892,11 +890,8 @@ class CreateNewConversation(ctk.CTkFrame):
     def add_conversation(self, controller, conversation_title, message_content, restriction_status):
         current_date = datetime.datetime.now()
         creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
-        send_with_size(client_socket, handle_encryption.cipher_data(f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}")
+
         if data[0] == "NEWCNV":
             if data[1] == "new_conversation_added":
                 messagebox.showinfo("Info", "Created new conversation!")
@@ -952,11 +947,8 @@ class ConversationGUI(ctk.CTkFrame):
     
     def set_pinning(self):
         # get buttons state (has user already pinned here?), and the current number of pins on this conversation
-        send_with_size(client_socket, handle_encryption.cipher_data(f"GEPCNV|{user_profile.username}|{self.title}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"GEPCNV|{user_profile.username}|{self.title}")
+
         if data[0] == "GEPCNV":
             self.pins = data[2]
             self.current_pin_status = data[1]
@@ -980,10 +972,7 @@ class ConversationGUI(ctk.CTkFrame):
             # change to yellow
             self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
         
-        send_with_size(client_socket, handle_encryption.cipher_data(f"PINCNV|{user_profile.username}|{self.title}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
+        data = send_and_recieve(f"PINCNV|{user_profile.username}|{self.title}")
         
         if data[0] == "PINCNV":
             self.pins = data[2]
@@ -1000,11 +989,8 @@ class ConversationGUI(ctk.CTkFrame):
                 #self.controllerremove_pinned_conversation(self.title)
     
     def change_pin_manually(self):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"GEPCNV|{user_profile.username}|{self.title}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"GEPCNV|{user_profile.username}|{self.title}")
+
         if data[0] == "GEPCNV":
             self.pins = data[2]
             self.current_pin_status = data[1]
@@ -1042,11 +1028,8 @@ class HandleConversations:
         self.search_conversations_lst = []
     
     def get_initial_conversations(self):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"FSTCNV|{self.amount}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"FSTCNV|{self.amount}")
+
         if data[0] == "FSTCNV":
             if data[1] != "no_conversations":
                 conversations = []
@@ -1065,11 +1048,8 @@ class HandleConversations:
             
     
     def request_more(self):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"MORCNV|{self.amount}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"MORCNV|{self.amount}")
+
         if data[0] == "MORCNV":
             if data[1] != "no_conversations":
                 conversations = []
@@ -1129,11 +1109,8 @@ class HandleConversations:
         return creation_date
     
     def search_all(self, search_for):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"SRCCNV|{search_for}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"SRCCNV|{search_for}")
+
         if data[0] == "SRCCNV":
             if data[1] != "word_not_found":
                 found_conversations = []
@@ -1207,11 +1184,8 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         self.message_content_entry.delete("1.0","end")
         
-        send_with_size(client_socket, handle_encryption.cipher_data(f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{self.title}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"NEWMSG|{message_content}|{creation_date}|{user_profile.username}|{self.title}")
+
         if data[0] == "NEWMSG":
             if data[1] == "new_message_added":
 
@@ -1231,11 +1205,8 @@ class HandleMessages:
 
     
     def get_initial_messages(self):
-        send_with_size(client_socket, handle_encryption.cipher_data(f"FSTMSG|{self.amount}|{self.conversation_title}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"FSTMSG|{self.amount}|{self.conversation_title}")
+
         if data[0] == "FSTMSG":
             messages = []
             if data[1] != "no_messages":
@@ -1254,11 +1225,8 @@ class HandleMessages:
     
     def request_more(self):
         # {self.messages_lst[-1] won't cause out of range error beacause when creating a conversation the client will write the first message in that conversation
-        send_with_size(client_socket, handle_encryption.cipher_data(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].id}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].id}")
+
         if data[0] == "MORMSG":
             if data[1] != "no_messages":
                 messages = []
@@ -1351,11 +1319,8 @@ class MessageGUI(ctk.CTkFrame):
     def delete_message(self):
         self.destroy()
         
-        send_with_size(client_socket, handle_encryption.cipher_data(f"DELMSG|{self.id}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"DELMSG|{self.id}")
+
         if data[0] == "DELMSG":
             if data[1] == "success":
                 self.the_handler.delete_message_from_lst(self.id)
@@ -1372,11 +1337,8 @@ class MessageGUI(ctk.CTkFrame):
         self.edit_button.pack(side=ctk.RIGHT, pady=3)
         
         content = self.content_label.get("1.0", "end-1c")
-        send_with_size(client_socket, handle_encryption.cipher_data(f"EDTMSG|{self.id}|{content}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"EDTMSG|{self.id}|{content}")
+
         if data[0] == "EDTMSG":
             if data[1] == "success":
                 messagebox.showinfo("Info", "message edited successfully")
@@ -1384,11 +1346,8 @@ class MessageGUI(ctk.CTkFrame):
         
     def set_voting(self):
         # get buttons state (has user already votes here?), and the current number of votes on this message
-        send_with_size(client_socket, handle_encryption.cipher_data(f"GEVMSG|{user_profile.username}|{self.id}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"GEVMSG|{user_profile.username}|{self.id}")
+
         if data[0] == "GEVMSG":
             self.votes = data[2]
             self.current_vote = data[1]
@@ -1428,11 +1387,8 @@ class MessageGUI(ctk.CTkFrame):
             # change to green
             self.upvote_button.configure(fg_color="#66FF00", hover_color="#32CD32")
         
-        send_with_size(client_socket, handle_encryption.cipher_data(f"VOTMSG|upvote|{user_profile.username}|{self.id}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"VOTMSG|upvote|{user_profile.username}|{self.id}")
+
         if data[0] == "VOTMSG":
             self.votes = data[2]
             self.votes_label.configure(text=self.votes)
@@ -1456,11 +1412,8 @@ class MessageGUI(ctk.CTkFrame):
             # chage to red
             self.downvote_button.configure(fg_color="#ED2939", hover_color="#E60026")
             
-        send_with_size(client_socket, handle_encryption.cipher_data(f"VOTMSG|downvote|{user_profile.username}|{self.id}"))
-        data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-        if len(data) <= 1:
-            return
-        
+        data = send_and_recieve(f"VOTMSG|downvote|{user_profile.username}|{self.id}")
+
         if data[0] == "VOTMSG":
             self.votes = data[2]
             self.votes_label.configure(text=self.votes)
