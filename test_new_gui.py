@@ -119,84 +119,84 @@
 
 # light mode
 
-import customtkinter as ctk
-import tkinter as tk
-from PIL import Image, ImageTk
-import os
-
-#ctk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
-#ctk.set_default_color_theme("green")  # Themes: "blue" (default), "green", "dark-blue"
-
-
-
-print(f"{str(2).zfill(2)}:{str(5).zfill(2)}")
-
-
-
-app = ctk.CTk()
-app.geometry("800x600")
-app.title("Thread Vortex")
-
-# Top Frame
-top_frame = ctk.CTkFrame(app, border_color="black", border_width=2)
-top_frame.pack(side=tk.TOP, fill=tk.X, expand=True, padx=20, pady=20)
-
-# Logo
-logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))  # Replace with your logo path
-logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(400, 246))
-logo_label = ctk.CTkLabel(top_frame, image=logo_icon, text="")
-logo_label.pack(pady=5)
-
-credits_label = ctk.CTkLabel(top_frame, text="Created by Idan Barkin", font=("Roboto", 40))
-credits_label.pack(pady=5)
-# Left Frame
-left_frame = ctk.CTkFrame(app, border_color="black", border_width=2)
-left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-## Earth image
-#earth_icon_image = Image.open(os.path.join("assets","earth icon 1.png"))  # Replace with your image path
-#earth_icon = ctk.CTkImage(light_image=earth_icon_image, size=(250, 250))
-#earth_label = ctk.CTkLabel(left_frame, image=earth_icon, text="")
-#earth_label.pack(pady=20)
-
-## Connecting people text
-#connecting_label = ctk.CTkLabel(left_frame, text="Connecting people around the world", font=("Roboto", 16))
-#connecting_label.pack(pady=10)
-
-# Right Frame
-right_frame = ctk.CTkFrame(app, border_color="black", border_width=2)
-right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-# Chat icon
-chat_icon_image = Image.open(os.path.join("assets","conversation icon 2.png"))  # Replace with your icon path
-chat_photo = ctk.CTkImage(light_image=chat_icon_image, size=(100, 100))
-chat_label = ctk.CTkLabel(left_frame, image=chat_photo, text="")
-chat_label.pack(pady=20)
-
-# Log-in button
-def login_button_click():
-    print("Log-in button clicked")  # Replace with your login action
-
-login_button = ctk.CTkButton(left_frame, text="Log-in", command=login_button_click, width=120, height=32, font=("Roboto", 14))
-login_button.pack(pady=10)
-
-## New tag
-#new_label = ctk.CTkLabel(right_frame, text="NEW", font=("Roboto", 16), fg_color="red", text_color="white")
-#new_label.pack(pady=10)
-
-new_icon_image = Image.open(os.path.join("assets","new icon 2.png"))  # Replace with your icon path
-new_photo = ctk.CTkImage(light_image=new_icon_image, size=(100, 100))
-new_label = ctk.CTkLabel(right_frame, image=new_photo, text="")
-new_label.pack(pady=20)
-
-# Register button
-def register_button_click():
-    print("Register button clicked")  # Replace with your register action
-
-register_button = ctk.CTkButton(right_frame, text="Register", command=register_button_click, width=120, height=32, font=("Roboto", 14))
-register_button.pack(pady=10)
-
-app.mainloop()
+##import customtkinter as ctk
+##import tkinter as tk
+##from PIL import Image, ImageTk
+##import os
+##
+###ctk.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
+###ctk.set_default_color_theme("green")  # Themes: "blue" (default), "green", "dark-blue"
+##
+##
+##
+##print(f"{str(2).zfill(2)}:{str(5).zfill(2)}")
+##
+##
+##
+##app = ctk.CTk()
+##app.geometry("800x600")
+##app.title("Thread Vortex")
+##
+### Top Frame
+##top_frame = ctk.CTkFrame(app, border_color="black", border_width=2)
+##top_frame.pack(side=tk.TOP, fill=tk.X, expand=True, padx=20, pady=20)
+##
+### Logo
+##logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))  # Replace with your logo path
+##logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(400, 246))
+##logo_label = ctk.CTkLabel(top_frame, image=logo_icon, text="")
+##logo_label.pack(pady=5)
+##
+##credits_label = ctk.CTkLabel(top_frame, text="Created by Idan Barkin", font=("Roboto", 40))
+##credits_label.pack(pady=5)
+### Left Frame
+##left_frame = ctk.CTkFrame(app, border_color="black", border_width=2)
+##left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=20, pady=20)
+##
+#### Earth image
+###earth_icon_image = Image.open(os.path.join("assets","earth icon 1.png"))  # Replace with your image path
+###earth_icon = ctk.CTkImage(light_image=earth_icon_image, size=(250, 250))
+###earth_label = ctk.CTkLabel(left_frame, image=earth_icon, text="")
+###earth_label.pack(pady=20)
+##
+#### Connecting people text
+###connecting_label = ctk.CTkLabel(left_frame, text="Connecting people around the world", font=("Roboto", 16))
+###connecting_label.pack(pady=10)
+##
+### Right Frame
+##right_frame = ctk.CTkFrame(app, border_color="black", border_width=2)
+##right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=20, pady=20)
+##
+### Chat icon
+##chat_icon_image = Image.open(os.path.join("assets","conversation icon 2.png"))  # Replace with your icon path
+##chat_photo = ctk.CTkImage(light_image=chat_icon_image, size=(100, 100))
+##chat_label = ctk.CTkLabel(left_frame, image=chat_photo, text="")
+##chat_label.pack(pady=20)
+##
+### Log-in button
+##def login_button_click():
+##    print("Log-in button clicked")  # Replace with your login action
+##
+##login_button = ctk.CTkButton(left_frame, text="Log-in", command=login_button_click, width=120, height=32, font=("Roboto", 14))
+##login_button.pack(pady=10)
+##
+#### New tag
+###new_label = ctk.CTkLabel(right_frame, text="NEW", font=("Roboto", 16), fg_color="red", text_color="white")
+###new_label.pack(pady=10)
+##
+##new_icon_image = Image.open(os.path.join("assets","new icon 2.png"))  # Replace with your icon path
+##new_photo = ctk.CTkImage(light_image=new_icon_image, size=(100, 100))
+##new_label = ctk.CTkLabel(right_frame, image=new_photo, text="")
+##new_label.pack(pady=20)
+##
+### Register button
+##def register_button_click():
+##    print("Register button clicked")  # Replace with your register action
+##
+##register_button = ctk.CTkButton(right_frame, text="Register", command=register_button_click, width=120, height=32, font=("Roboto", 14))
+##register_button.pack(pady=10)
+##
+##app.mainloop()
 
 
 # dark mode 
@@ -267,3 +267,72 @@ app.mainloop()
 #register_button.pack(pady=10)
 #
 #app.mainloop()
+
+
+import customtkinter as ctk
+
+def register():
+    # Retrieve user input from fields
+    name = name_entry.get()
+    password = password_entry.get()
+    email = email_entry.get()
+    age = age_entry.get()
+    gender = gender_entry.get()
+    occupation = occupation_entry.get()
+    description = description_text.get("1.0", "end-1c")
+
+    # Process the data (e.g., save to database)
+    # ...
+
+# Create the main window
+root = ctk.CTk()
+root.title("Register Page")
+
+# Mandatory fields
+mandatory_label = ctk.CTkLabel(root, text="Mandatory fields:")
+mandatory_label.grid(row=0, column=0, sticky="w")
+
+name_label = ctk.CTkLabel(root, text="Name:")
+name_label.grid(row=1, column=0, sticky="w")
+name_entry = ctk.CTkEntry(root)
+name_entry.grid(row=1, column=1)
+
+password_label = ctk.CTkLabel(root, text="Password:")
+password_label.grid(row=2, column=0, sticky="w")
+password_entry = ctk.CTkEntry(root, show="*")
+password_entry.grid(row=2, column=1)
+
+email_label = ctk.CTkLabel(root, text="Email:")
+email_label.grid(row=3, column=0, sticky="w")
+email_entry = ctk.CTkEntry(root)
+email_entry.grid(row=3, column=1)
+
+# Additional fields
+age_label = ctk.CTkLabel(root, text="Age:")
+age_label.grid(row=4, column=0, sticky="w")
+age_entry = ctk.CTkEntry(root)
+age_entry.grid(row=4, column=1)
+
+gender_label = ctk.CTkLabel(root, text="Gender:")
+gender_label.grid(row=5, column=0, sticky="w")
+gender_entry = ctk.CTkEntry(root)
+gender_entry.grid(row=5, column=1)
+
+occupation_label = ctk.CTkLabel(root, text="Occupation:")
+occupation_label.grid(row=6, column=0, sticky="w")
+occupation_entry = ctk.CTkEntry(root)
+occupation_entry.grid(row=6, column=1)
+
+description_label = ctk.CTkLabel(root, text="Description:")
+description_label.grid(row=7, column=0, sticky="w")
+description_text = ctk.CTkTextbox(root, height=5, width=30)
+description_text.grid(row=7, column=1)
+
+# Buttons
+register_button = ctk.CTkButton(root, text="Register", command=register)
+register_button.grid(row=8, column=0, columnspan=2)
+
+return_button = ctk.CTkButton(root, text="Return to opening screen")
+return_button.grid(row=9, column=0, columnspan=2)
+
+root.mainloop()

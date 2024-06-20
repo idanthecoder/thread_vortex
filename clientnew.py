@@ -205,53 +205,70 @@ class RegisterPage(ctk.CTkFrame):
         
         self.controller = controller
 
-        self.label = ctk.CTkLabel(self, text="Register Page", font=("Helvetica", 16))
+        self.label = ctk.CTkLabel(self, text="Register Page", font=("Helvetica", 32))
         self.label.pack(pady=10, padx=10)
-
-        self.name_label = ctk.CTkLabel(self, text="Name:")
-        self.name_label.pack()
-        self.name_entry = ctk.CTkEntry(self)
-        self.name_entry.pack()
-
-        self.password_label = ctk.CTkLabel(self, text="Password:")
-        self.password_label.pack()
-        self.password_entry = ctk.CTkEntry(self, show="*")
-        self.password_entry.pack()
-
-        self.email_label = ctk.CTkLabel(self, text="Email:")
-        self.email_label.pack()
-        self.email_entry = ctk.CTkEntry(self)
-        self.email_entry.pack()
         
-        self.age_label = ctk.CTkLabel(self, text="Age:")
-        self.age_label.pack()
-        self.age_entry = ctk.CTkEntry(self)
-        self.age_entry.pack()
+        self.line = ctk.CTkFrame(self, height=1, fg_color="black", border_color="black", border_width=1)
+        self.line.pack(fill=ctk.X, expand=True)
 
-        self.gender_label = ctk.CTkLabel(self, text="Gender:")
-        self.gender_label.pack()
-        self.gender_entry = ctk.CTkEntry(self)
-        self.gender_entry.pack()
+        # Left Frame
+        self.left_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.left_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
 
-        self.country_label = ctk.CTkLabel(self, text="Country:")
-        self.country_label.pack()
-        self.country_entry = ctk.CTkEntry(self)
-        self.country_entry.pack()
+        # Right Frame
+        self.right_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
+        
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(anchor=ctk.S, fill=ctk.X, expand=True, padx=10, pady=10)
 
-        self.occupation_label = ctk.CTkLabel(self, text="Occupation:")
-        self.occupation_label.pack()
-        self.occupation_entry = ctk.CTkEntry(self)
-        self.occupation_entry.pack()
+        self.mandate_label = ctk.CTkLabel(self.left_frame, text="Mandatory fields:", font=("Helvetica", 24))
+        self.mandate_label.pack(pady=2)
 
-        self.description_label = ctk.CTkLabel(self, text="Description:")
-        self.description_label.pack()
-        self.description_entry = ctk.CTkTextbox(self, wrap="word")
-        self.description_entry.pack()
+        self.name_label = ctk.CTkLabel(self.left_frame, text="Name:")
+        self.name_label.pack(pady=2)
+        self.name_entry = ctk.CTkEntry(self.left_frame)
+        self.name_entry.pack(pady=2)
 
-        self.register_button = ctk.CTkButton(self, text="Register", command=lambda: self.user_register_h(self.name_entry.get(), self.password_entry.get(), self.email_entry.get(), self.age_entry.get(), self.gender_entry.get(), self.country_entry.get(), self.occupation_entry.get(), self.description_entry.get("1.0", "end-1c")))
+        self.password_label = ctk.CTkLabel(self.left_frame, text="Password:")
+        self.password_label.pack(pady=2)
+        self.password_entry = ctk.CTkEntry(self.left_frame, show="*")
+        self.password_entry.pack(pady=2)
+
+        self.email_label = ctk.CTkLabel(self.left_frame, text="Email:")
+        self.email_label.pack(pady=2)
+        self.email_entry = ctk.CTkEntry(self.left_frame)
+        self.email_entry.pack(pady=2)
+        
+        self.age_label = ctk.CTkLabel(self.right_frame, text="Age:")
+        self.age_label.pack(pady=2)
+        self.age_entry = ctk.CTkEntry(self.right_frame)
+        self.age_entry.pack(pady=2)
+
+        self.gender_label = ctk.CTkLabel(self.right_frame, text="Gender:")
+        self.gender_label.pack(pady=2)
+        self.gender_entry = ctk.CTkEntry(self.right_frame)
+        self.gender_entry.pack(pady=2)
+
+        self.country_label = ctk.CTkLabel(self.right_frame, text="Country:")
+        self.country_label.pack(pady=2)
+        self.country_entry = ctk.CTkEntry(self.right_frame)
+        self.country_entry.pack(pady=2)
+
+        self.occupation_label = ctk.CTkLabel(self.right_frame, text="Occupation:")
+        self.occupation_label.pack(pady=2)
+        self.occupation_entry = ctk.CTkEntry(self.right_frame)
+        self.occupation_entry.pack(pady=2)
+
+        self.description_label = ctk.CTkLabel(self.right_frame, text="Description:")
+        self.description_label.pack(pady=1)
+        self.description_entry = ctk.CTkTextbox(self.right_frame, wrap="word")
+        self.description_entry.pack(pady=4)
+
+        self.register_button = ctk.CTkButton(self.bottom_frame, text="Register", command=lambda: self.user_register_h(self.name_entry.get(), self.password_entry.get(), self.email_entry.get(), self.age_entry.get(), self.gender_entry.get(), self.country_entry.get(), self.occupation_entry.get(), self.description_entry.get("1.0", "end-1c")))
         self.register_button.pack(pady=10)
         
-        self.go_back_button = ctk.CTkButton(self, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
+        self.go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
         self.go_back_button.pack(pady=10)
     
     def user_register_h(self, username, password, mail, age, gender, country, occupation, description):
