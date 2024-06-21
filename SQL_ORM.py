@@ -7,16 +7,30 @@ __author__ = "Idan"
 
 
 class UsernamePasswordORM(object):
+    """
+    An ORM class that essentially transfers the User class to a SQLite3 table, and vice-versa.
+
+    Attributes:
+        db_name (str): The name of the database file.
+        conn (sqlite3.connect): The connection to the db file.
+        cursor (sqlite3.cursor): The cursor that is pointing to the db file.
+    """
+    
     def __init__(self, db_name="UsernamePassword.db"):
+        """
+        The constructor for UsernamePasswordORM class.
+
+        Args:
+            db_name (str): The name of the database file.
+        """
+        
         self.db_name = db_name
         self.conn = None  # will store the DB connection
         self.cursor = None  # will store the DB connection cursor
 
     def connect(self):
         """
-        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
-        :parameter: nothing
-        :return: nothing
+        Connects to a DB file and points a cursor to it.
         """
 
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
@@ -192,16 +206,30 @@ class UsernamePasswordORM(object):
 #---------------------------------
 
 class MessagesORM(object):
+    """
+    An ORM class that essentially transfers the MessageStruct class to a SQLite3 table, and vice-versa.
+
+    Attributes:
+        db_name (str): The name of the database file.
+        conn (sqlite3.connect): The connection to the db file.
+        cursor (sqlite3.cursor): The cursor that is pointing to the db file.
+    """
+    
     def __init__(self, db_name="Messages.db"):
+        """
+        The constructor for MessagesORM class.
+
+        Args:
+            db_name (str): The name of the database file.
+        """
+        
         self.db_name = db_name
         self.conn = None  # will store the DB connection
         self.cursor = None  # will store the DB connection cursor
 
     def connect(self):
-        """
-        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
-        :parameter: nothing
-        :return: nothing
+        """ 
+        Connects to a DB file and points a cursor to it.
         """
 
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
@@ -351,16 +379,30 @@ class MessagesORM(object):
 #---------------------------------
 
 class ConversationsORM(object):
+    """
+    An ORM class that essentially transfers the ConversationStruct class to a SQLite3 table, and vice-versa.
+
+    Attributes:
+        db_name (str): The name of the database file.
+        conn (sqlite3.connect): The connection to the db file.
+        cursor (sqlite3.cursor): The cursor that is pointing to the db file.
+    """
+    
     def __init__(self, db_name="Conversations.db"):
+        """
+        The constructor for ConversationsORM class.
+
+        Args:
+            db_name (str): The name of the database file.
+        """
+        
         self.db_name = db_name
         self.conn = None  # will store the DB connection
         self.cursor = None  # will store the DB connection cursor
 
     def connect(self):
-        """
-        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
-        :parameter: nothing
-        :return: nothing
+        """ 
+        Connects to a DB file and points a cursor to it.
         """
 
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
@@ -489,16 +531,30 @@ class ConversationsORM(object):
 
 
 class UserMessageVotesORM(object):
+    """
+    An ORM class that essentially transfers the UsersMessagesVotes class to a SQLite3 table, and vice-versa.
+
+    Attributes:
+        db_name (str): The name of the database file.
+        conn (sqlite3.connect): The connection to the db file.
+        cursor (sqlite3.cursor): The cursor that is pointing to the db file.
+    """
+    
     def __init__(self, db_name="UsersMessagesVotes.db"):
+        """
+        The constructor for UserMessageVotesORM class.
+
+        Args:
+            db_name (str): The name of the database file.
+        """
+        
         self.db_name = db_name
         self.conn = None  # will store the DB connection
         self.cursor = None  # will store the DB connection cursor
 
     def connect(self):
-        """
-        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
-        :parameter: nothing
-        :return: nothing
+        """ 
+        Connects to a DB file and points a cursor to it.
         """
 
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)
@@ -569,16 +625,30 @@ class UserMessageVotesORM(object):
 
 
 class UserConversationPinsORM(object):
+    """
+    An ORM class that essentially transfers the UsersConversationsPins class to a SQLite3 table, and vice-versa.
+
+    Attributes:
+        db_name (str): The name of the database file.
+        conn (sqlite3.connect): The connection to the db file.
+        cursor (sqlite3.cursor): The cursor that is pointing to the db file.
+    """
+    
     def __init__(self, db_name="UserConversationPins.db"):
+        """
+        The constructor for UserConversationPinsORM class.
+
+        Args:
+            db_name (str): The name of the database file.
+        """
+        
         self.db_name = db_name
         self.conn = None  # will store the DB connection
         self.cursor = None  # will store the DB connection cursor
 
     def connect(self):
-        """
-        Process: Opens DB file and put value in self.conn (need DB file name) and self.cursor
-        :parameter: nothing
-        :return: nothing
+        """ 
+        Connects to a DB file and points a cursor to it.
         """
 
         self.conn = sqlite3.connect(self.db_name, check_same_thread=False)

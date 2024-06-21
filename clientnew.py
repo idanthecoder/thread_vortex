@@ -17,11 +17,25 @@ from text_to_speech_handler import speak_text, stop_speech
 
 
 def fail_mechanism():
+    """
+    Closes the main app window and opens the failed screen.
+    """
+    
     app.destroy()
     failed_load_app = FailedToload()
     failed_load_app.mainloop()
 
 def send_and_recieve(data_to_send):
+    """
+    Sends requests to the server and returns the response.
+    If the server is disconnected show user the fail screen.
+
+    Args:
+        data_to_send (str): The user's request.
+
+    Returns:
+        list: The server's response, divided into a list in which every value is related to the user's request (in accordance to the protocol).
+    """
     try:
         send_with_size(client_socket, handle_encryption.cipher_data(data_to_send))
         data = handle_encryption.decipher_data(recv_by_size(client_socket))
@@ -35,7 +49,21 @@ def send_and_recieve(data_to_send):
         
 
 class App(ctk.CTk):
+    """
+    A class that inherits from the CTk class, and therefore behaves as a customtkinter main app window.
+    This class will control the frames which the user can see, and is in a way the base of the GUI.
+
+    Attributes:
+        container (customtkinter.CTkFrame): The frame in which all the different screens will be placed.
+        saved_frames (dict): A dictionary saving the state of the frames that were already shown to the user (key is the specific frame class, value is the instance of that frame class).
+        frame (customtkinter.CTkFrame): The current frame (screen) that is shown to the user.
+    """
+    
     def __init__(self):
+        """
+        The constructor for App class.
+        """
+        
         super().__init__()
         self.title("ThreadVortex")
         self.geometry("800x600")
@@ -56,10 +84,19 @@ class App(ctk.CTk):
 
     def show_page(self, class_to_show, **kwargs):
         """
-        Process: 
-        Parameters: class_to_show - the class to switch to,
-        **kwargs - possible kwargs currently are for example: profile_username="username", title="title", class_return_to=class, edited_profile=True/False
-        Returns: Nothing.
+        Switches between the frames that are shown on the screen. Some are saved so that when the user will view them again, their state will remain the same (using tkraise to show them),
+        whereas others are created new everytime they are requested (using grid/pack to show them). 
+
+        Args:
+            class_to_show (class): A class that inherits from the CTkFrame class (not an instance though!), that will be shown to the user.
+            **kwargs: possible kwargs currently: 
+                profile_username="username" (str)
+                title="title" (str)
+                class_return_to=class (class)
+                edited_profile=True/False (bool)
+                str_to_search="str" (str)
+                mail="mail" (str)
+                callback=function (def)
         """
         
         ## not sure about this change, but it fixes a bug of exiting and returning to the same conversation
@@ -130,6 +167,13 @@ class App(ctk.CTk):
             self.frame.grid(row=0, column=0, sticky="nsew")
     
     def change_pinned(self, conversation_title, **kwargs):
+        """
+        Changes the pin state of a certain conversation (pinned/unpinned)
+
+        Args:
+            conversation_title (str): The title of the conversation that was pinned/unpinned by the user.
+        """
+        
         if "how_to_change" in kwargs:
             how_to_change = kwargs.pop("how_to_change")
         if "class_return_to" in kwargs:
@@ -147,32 +191,25 @@ class App(ctk.CTk):
                 self.saved_frames[HomePage_Connected].conversation_handler.convgui_dict[conversation_title].change_pin_manually()
     
     def reset_saved_frames(self):
+        """
+        When disconnecting, clear the saved_frames dictionary completely and then show the opening screen.
+        """
+        
         self.saved_frames.clear()
         self.frame = OpeningScreen(self.container, self)
         self.saved_frames[OpeningScreen] = self.frame
         self.frame.grid(row=0, column=0, sticky="nsew")
-        
-
-#class OpeningScreen(ctk.CTkFrame):
-#    def __init__(self, parent, controller):
-#        super().__init__(parent)
-#        # Top bar with logo, search bar, and login/register buttons
-#        self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
-#        self.top_bar.pack(fill=ctk.X)
-#        self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
-#        self.logo.pack(padx=12, pady=1.25)
-#        
-#        
-#        self.choosing_area = ctk.CTkFrame(self, fg_color="#D391FA")
-#        self.choosing_area.pack(fill=ctk.BOTH, expand=True)
-#        
-#        self.login_button = ctk.CTkButton(self.choosing_area, width=300, height=250, text="Login", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(LoginPage))
-#        self.login_button.pack(padx=1.25, pady=1.25)
-#        self.register_button = ctk.CTkButton(self.choosing_area, width=300, height=250, text="Register", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(RegisterPage))
-#        self.register_button.pack(padx=1.25, pady=1.25)
 
 
 class OpeningScreen(ctk.CTkFrame):
+    """
+    A class that inherits from the CTkFrame class, and therefore behaves as a customtkinter frame.
+    This class is the opening screen from which the user could connect to his profile.
+
+    Attributes:
+    
+    """
+    
     def __init__(self, parent, controller):
         super().__init__(parent)
         # Top Frame
@@ -294,6 +331,16 @@ class RegisterPage(ctk.CTkFrame):
         
         current_date = datetime.datetime.now()
         date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
+        
+        if username == "[DELETED]":
+                messagebox.showwarning("Warning", "[DELETED] isn't a valid username")
+                return
+        
+        for val in (username, password, mail, age, gender, country, occupation, description):
+            if '|' in val or '_' in val:
+                messagebox.showwarning("Warning", "User input can't contain | or _")
+                return
+        
         self.temp_user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
         
         self.verification(mail)
@@ -317,7 +364,7 @@ class RegisterPage(ctk.CTkFrame):
             elif data[1] == "name_taken":
                 messagebox.showwarning("Warning", "Username already in use")
             elif data[1] == "mail_taken":
-                messagebox.showwarning("Warning", "Username already in use")
+                messagebox.showwarning("Warning", "Mail already in use")
             
             self.controller.show_page(RegisterPage)
 
@@ -356,7 +403,7 @@ class EnterVerificationCode(ctk.CTkFrame):
         self.confirm_button = ctk.CTkButton(self, text="Confirm", command=lambda: self.check_verify(self.verify_entry.get()))
         self.confirm_button.pack(pady=10)
         
-        self.timer = DynamicTime(self, self.controller, mail)
+        self.timer = DynamicTime(self, self.controller, mail, self.class_return_to)
         
         self.go_back_button = ctk.CTkButton(self, text="Return to previous screen", command=self.return_and_stop_time)
         self.go_back_button.pack(pady=10)
@@ -375,13 +422,14 @@ class EnterVerificationCode(ctk.CTkFrame):
 
 
 class DynamicTime(ctk.CTkFrame):
-    def __init__(self, parent, controller, mail):
+    def __init__(self, parent, controller, mail, class_return_to):
         super().__init__(parent)
         
         self.pack(pady=5)
         
         self.controller = controller
         self.mail = mail
+        self.class_return_to = class_return_to
         
         # Initialize timer duration (in seconds)
         self.timer_duration = 300  # 5 minutes
@@ -415,7 +463,7 @@ class DynamicTime(ctk.CTkFrame):
                     self.update_timer()
                 else:
                     self.stop_timer_smoothly()
-                    self.controller.show_page(RegisterPage)
+                    self.controller.show_page(self.class_return_to)
             
     def stop_timer_smoothly(self):
         self.update_continuously = ctk.BooleanVar(master=self, value=False)
@@ -452,6 +500,16 @@ class LoginPage(ctk.CTkFrame):
     
     def user_login(self, controller, name, password, email):
         global user_profile
+        
+        if name == "[DELETED]":
+            messagebox.showwarning("Warning", "[DELETED] isn't a valid username")
+            return
+        
+        for val in (name, password, email):
+            if '|' in val or '_' in val:
+                messagebox.showwarning("Warning", "User input can't contain | or _")
+                return
+        
         data = send_and_recieve(f"LOGUSR|{name}|{password}|{email}")
         
         if data[0] == "LOGUSR":
@@ -484,11 +542,16 @@ class ForgotPassword(ctk.CTkFrame):
     
     def go_verify(self):
         self.mail = self.email_entry.get()
+        
+        if '|' in self.mail or '_' in self.mail:
+                messagebox.showwarning("Warning", "User input can't contain | or _ or be equel to [DELETED]")
+                return
+        
         self.controller.show_page(EnterVerificationCode, mail=self.mail, callback=self.choose_new_password, class_return_to=ForgotPassword)
     
     def choose_new_password(self):
         self.controller.show_page(ChoosePassword, mail=self.mail)
-    
+
     #def send_new_password_server(self, new_password):
     #    send_with_size(client_socket, handle_encryption.cipher_data(f"NPSUSR|{self.mail}|{new_password}"))
     #    data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
@@ -520,6 +583,11 @@ class ChoosePassword(ctk.CTkFrame):
     
     
     def send_new_password_server(self, new_password):
+        for val in (self.mail, new_password):
+            if '|' in val or '_' in val:
+                messagebox.showwarning("Warning", "User input can't contain | or _")
+                return
+        
         data = send_and_recieve(f"NPSUSR|{self.mail}|{new_password}")
         
         if data[0] == "NPSUSR":
@@ -543,7 +611,7 @@ class HomePage_Connected(ctk.CTkFrame):
         self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
         self.search_bar = ctk.CTkEntry(self.top_bar)
         self.search_bar.pack(side=ctk.LEFT, padx=1)
-        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: controller.show_page(SearchPage, str_to_search=self.search_bar.get()))
+        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_h(self.search_bar.get()))
         self.search_button.pack(side=ctk.LEFT)
         self.disconnect_button = ctk.CTkButton(self.top_bar, text="Disconnect", fg_color="white", text_color="black", hover_color="cyan", command=lambda: self.disconnect(controller))
         self.disconnect_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
@@ -586,11 +654,6 @@ class HomePage_Connected(ctk.CTkFrame):
         
         # choose favorite conversations
         self.setup_favourites()
-        
-        
-        self.topics = ["Gaming", "Cyber", "Tech", "Fashion", "Sports", "History", "Politics", "Physics"]
-        for topic in self.topics:
-            ctk.CTkButton(self.sidebar, text=topic, fg_color="white", text_color="black", hover_color="cyan", width=100).pack(pady=2)
 
         # Add messages here
         # Main content area with messages
@@ -603,6 +666,13 @@ class HomePage_Connected(ctk.CTkFrame):
         
         #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, controller, 5))
         #self.request_conversations_button.pack(side=ctk.BOTTOM)
+    
+    def search_h(self, to_search):
+        if '|' in to_search or '_' in to_search:
+                messagebox.showwarning("Warning", "User input can't contain | or _")
+                return
+        
+        self.controller.show_page(SearchPage, str_to_search=to_search)
     
     def disconnect(self, controller):
         if messagebox.askokcancel("Warning", "You are about to disconnect from the program."):
@@ -681,7 +751,7 @@ class SearchPage(ctk.CTkFrame):
             self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
             self.search_bar = ctk.CTkEntry(self.top_bar)
             self.search_bar.pack(side=ctk.LEFT, padx=1)
-            self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_again(self.search_bar.get()))
+            self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_again_h(self.search_bar.get()))
             self.search_button.pack(side=ctk.LEFT)
             
             # Sidebar with topics
@@ -697,6 +767,13 @@ class SearchPage(ctk.CTkFrame):
             
             self.conversation_handler = HandleConversations(self.content_area, controller, SearchPage, 5, True)
             self.conversation_handler.search_all(str_to_search)
+    
+    def search_again_h(self, to_search):
+        if '|' in to_search or '_' in to_search:
+            messagebox.showwarning("Warning", "User input can't contain | or _")
+            return
+
+        self.search_again(to_search)
     
     def search_again(self, to_search):
         global last_search
@@ -756,6 +833,11 @@ class EditProfilePage(ctk.CTkFrame):
     
     def user_edit_profile_h(self, controller, password, age, gender, country, occupation, description):
         global user_profile
+        
+        for val in (password, age, gender, country, occupation, description):
+            if '|' in val or '_' in val:
+                messagebox.showwarning("Warning", "User input can't contain | or _")
+                return
         
         user_profile.edit_profile(age, gender, country, occupation, description)
         self.user_edit_profile(controller, user_profile, password)
@@ -890,6 +972,15 @@ class CreateNewConversation(ctk.CTkFrame):
     def add_conversation(self, controller, conversation_title, message_content, restriction_status):
         current_date = datetime.datetime.now()
         creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
+        
+        for val in (conversation_title, message_content):
+            if '|' in val or '_' in val:
+                messagebox.showwarning("Warning", "User input can't contain | or _")
+                return
+        
+        if restriction_status == "":
+            restriction_status = "unrestricted"
+        
         data = send_and_recieve(f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}")
 
         if data[0] == "NEWCNV":
@@ -1181,6 +1272,10 @@ class InsideConversationGUI(ctk.CTkFrame):
     def post_message(self, message_content):
         current_date = datetime.datetime.now()
         creation_date = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
+        
+        if '|' in message_content or '_' in message_content:
+            messagebox.showwarning("Warning", "User input can't contain | or _")
+            return
         
         self.message_content_entry.delete("1.0","end")
         

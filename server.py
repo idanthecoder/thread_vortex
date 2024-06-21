@@ -35,7 +35,27 @@ conversations_pins_db.create_table()
 
 
 class TCPServer:
+    """
+    A class that behaves as the server in my project.
+
+    Attributes:
+        host (str): The machine host.
+        port (str): The port that is tuned to.
+        server_socket (socket.socket): The socket instance of the server.
+        clients (list): A list of all connected client sockets.
+        clients_conversations (dict): A dictionary in which the key is a client socket and the value is a list of all the conversation that are already shown to that client.
+        exit_all (bool): A boolean dictating when to close all connections.
+    """
+    
     def __init__(self, host, port):
+        """
+        The constructor for App class.
+
+        Args:
+            host (str): The machine host.
+            port (str): The port that is tuned to.
+        """
+        
         self.host = host
         self.port = port
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -44,6 +64,9 @@ class TCPServer:
         self.exit_all = False
 
     def start(self):
+        """
+        This function makes the server start running and waiting for client connections.
+        """
         try:
             self.server_socket.bind((self.host, self.port))
             self.server_socket.listen(5)
@@ -59,6 +82,13 @@ class TCPServer:
             self.server_socket.close()
 
     def handle_client(self, client_socket):
+        """
+        Handles all of the client's requests and sends a response.
+
+        Args:
+            client_socket (socket): The socket of a specific client in which data will be sent.
+        """
+        
         try:
             handle_encryption = EncryptionHandler(client_socket)
             while not self.exit_all:
@@ -398,12 +428,32 @@ class TCPServer:
             client_socket.close()
 
     def apart_titles_from_lst(self, conversation_lst):
+        """
+        Return a list of only titles without the other conversation data.
+
+        Args:
+            conversation_lst (list): A list of conversations data.
+
+        Returns:
+            list: A list of all the conversations titles.
+        """
         titles_lst = []
         for conv in conversation_lst:
             titles_lst.append(conv[1])
         return titles_lst
     
     def merge_lists(self, list1, list2):
+        """
+        Merges 2 lists of tuples together without duplicates.
+
+        Args:
+            list1 (list): List of conversations data tuples
+            list2 (list): List of conversations data tuples
+
+        Returns:
+            list: A merged list of list1 and list2 without duplicates.
+        """
+        
         unique_titles = set()
         merged_list = []
 
@@ -417,6 +467,13 @@ class TCPServer:
         return merged_list
 
     def broadcast(self, message):
+        """
+        Sends data to all clients.
+
+        Args:
+            message (str): Message to send.
+        """
+        
         for client_socket in self.clients:
             try:
                 send_with_size(client_socket, message)
@@ -424,6 +481,10 @@ class TCPServer:
                 print(f"Error broadcasting to client: {e}")
 
     def stop(self):
+        """
+        Stops the server process.
+        """
+        
         for client_socket in self.clients:
             client_socket.close()
         self.server_socket.close()
