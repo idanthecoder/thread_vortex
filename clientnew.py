@@ -326,12 +326,16 @@ class RegisterPage(ctk.CTkFrame):
         self.go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
         self.go_back_button.pack(pady=10)
     
-    def user_register_h(self, username, password, mail, age, gender, country, occupation, description):
+    def user_register_h(self, username, password, mail, age: str, gender, country, occupation, description):
         #global user_profile
         
         current_date = datetime.datetime.now()
         date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
         
+        if not age.isnumeric() and age != "":
+            messagebox.showwarning("Warning", "Age must be numeric.")
+            return
+
         if username == "[DELETED]":
                 messagebox.showwarning("Warning", "[DELETED] isn't a valid username")
                 return
@@ -831,8 +835,12 @@ class EditProfilePage(ctk.CTkFrame):
         go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
         go_back_button.pack(pady=10)
     
-    def user_edit_profile_h(self, controller, password, age, gender, country, occupation, description):
+    def user_edit_profile_h(self, controller, password, age: str, gender, country, occupation, description):
         global user_profile
+        
+        if not age.isnumeric() and age != "":
+            messagebox.showwarning("Warning", "Age must be numeric.")
+            return
         
         for val in (password, age, gender, country, occupation, description):
             if '|' in val or '_' in val:
@@ -1571,10 +1579,3 @@ if __name__ == "__main__":
         print("Connection refused")
         failed_load_app = FailedToload()
         failed_load_app.mainloop()
-        
-    # doesn't work. need to figure out a way to show client ht failed load screen if the server disconnects
-    #except ConnectionResetError:
-    #    print("Connection reset")
-    #    app.destroy()
-    #    failed_load_app = FailedToload()
-    #    failed_load_app.mainloop()
