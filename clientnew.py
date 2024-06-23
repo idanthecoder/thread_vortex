@@ -989,6 +989,10 @@ class CreateNewConversation(ctk.CTkFrame):
         if restriction_status == "":
             restriction_status = "unrestricted"
         
+        if restriction_status == "18+" and (user_profile.age == "" or int(user_profile.age) < 18):
+            messagebox.showwarning("Warning", "To restrict access to 18+ you must be yourself 18+.")
+            return
+        
         data = send_and_recieve(f"NEWCNV|{conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}")
 
         if data[0] == "NEWCNV":

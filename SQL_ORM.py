@@ -502,7 +502,7 @@ class ConversationsORM(object):
         except sqlite3.IntegrityError as e:
             if "UNIQUE constraint failed: Conversations.title" in str(e):
                 # Handle the specific case where the mail already exists
-                print("Error: Email address already registered.")
+                print("Error: Conversation title already used.")
                 return "title_issue"
             else:
                 # shouldn't really reach here - if printed then there is an unexpected bug
