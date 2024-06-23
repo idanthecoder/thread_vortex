@@ -107,21 +107,8 @@ class App(ctk.CTk):
         
         # if the requested class is already saved in the dictinary I want to use it in the state it was last left in
         if class_to_show in self.saved_frames.keys():
-            # if those parameters are in kwargs then this relates to the ViewProfile class
-            if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
-                profile_username = kwargs.pop("profile_username")
-                class_return_to = kwargs.pop("class_return_to")
-                edited_profile = kwargs.pop("edited_profile")
-                
-                # if at least one of the values is new then reset the value for this class and grid it
-                if profile_username != self.saved_frames[class_to_show].profile_username or class_return_to != self.saved_frames[class_to_show].class_return_to or edited_profile != self.saved_frames[class_to_show].edited_profile:
-                    self.frame = class_to_show(self.container, self, profile_username, class_return_to, edited_profile)
-                    self.saved_frames[class_to_show] = self.frame
-                    self.frame.grid(row=0, column=0, sticky="nsew")
-                    return
-            
             # if this parameter is in kwargs then this relates to the InsideConversationGUI class
-            elif "title" in kwargs and "class_return_to" in kwargs:
+            if "title" in kwargs and "class_return_to" in kwargs:
                 title = kwargs.pop("title")
                 class_return_to = kwargs.pop("class_return_to")
                 # if the value is new then it is a different conversation. Rreset the value for this class and grid it
@@ -131,6 +118,18 @@ class App(ctk.CTk):
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
             
+            ## if those parameters are in kwargs then this relates to the ViewProfile class
+            #if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
+            #    profile_username = kwargs.pop("profile_username")
+            #    class_return_to = kwargs.pop("class_return_to")
+            #    edited_profile = kwargs.pop("edited_profile")
+            #    
+            #    # if at least one of the values is new then reset the value for this class and grid it
+            #    if profile_username != self.saved_frames[class_to_show].profile_username or class_return_to != self.saved_frames[class_to_show].class_return_to or edited_profile != self.saved_frames[class_to_show].edited_profile:
+            #        self.frame = class_to_show(self.container, self, profile_username, class_return_to, edited_profile)
+            #        self.saved_frames[class_to_show] = self.frame
+            #        self.frame.grid(row=0, column=0, sticky="nsew")
+            #        return"""
             #elif "str_to_search" in kwargs:
             #    str_to_search = kwargs.pop("str_to_search")
             #    if str_to_search != self.saved_frames[class_to_show].str_to_search:
@@ -162,7 +161,7 @@ class App(ctk.CTk):
             else:
                 self.frame = class_to_show(self.container, self)
             
-            if class_to_show != SearchPage and class_to_show != EnterVerificationCode and class_to_show != ChoosePassword:
+            if class_to_show != SearchPage and class_to_show != EnterVerificationCode and class_to_show != ChoosePassword and class_to_show != ViewProfile:
                 self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
     
@@ -1328,17 +1327,24 @@ class HandleMessages:
     
     def request_more(self):
         # {self.messages_lst[-1] won't cause out of range error beacause when creating a conversation the client will write the first message in that conversation
-        data = send_and_recieve(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].id}")
+        
+        try:
+        
+            data = send_and_recieve(f"MORMSG|{self.amount}|{self.conversation_title}|{self.messages_lst[-1].id}")
 
-        if data[0] == "MORMSG":
-            if data[1] != "no_messages":
-                messages = []
-                for msgdata in data[1:]:
-                    msg_splt = msgdata.split('_')
-                    self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
-                    messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
-                self.draw_messages(messages)
-                #self.messages_lst.append(messages)
+            if data[0] == "MORMSG":
+                if data[1] != "no_messages":
+                    messages = []
+                    for msgdata in data[1:]:
+                        msg_splt = msgdata.split('_')
+                        self.messages_lst.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
+                        messages.append(classes.MessageStruct(msg_splt[1], msg_splt[2], msg_splt[3], msg_splt[4], msg_splt[0]))
+                    self.draw_messages(messages)
+                    #self.messages_lst.append(messages)
+        
+        except IndexError:
+            self.messages_lst = self.get_initial_messages()
+        
     
     def delete_message_from_lst(self, id_message):
         self.messages_lst = [message for message in self.messages_lst if message.id != id_message]

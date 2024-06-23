@@ -37,13 +37,25 @@ class UsernamePasswordORM(object):
         self.cursor = self.conn.cursor()
 
     def disconnect(self):
+        """
+        close the connection to the DB file.
+        """
+        
         if self.conn:
             self.conn.close()
 
     def commit(self):
+        """
+        Commit the changes done to the tables in the DB file so that it will be saved.
+        """
+        
         self.conn.commit()
 
     def create_table(self):
+        """
+        Creates a new table "Users" in the database if one does not already exists yet, to represent the accounts of the users (see attributes of the User class).
+        """
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS Users (
                 user_id INTEGER PRIMARY KEY,
@@ -63,6 +75,13 @@ class UsernamePasswordORM(object):
         self.commit()
 
     def insert_user(self, user: classes.User, salt):
+        """
+
+        Args:
+            user (classes.User): _description_
+            salt (str): _description_
+        """
+        
         self.cursor.execute('''
             INSERT INTO Users (username, password, salt, mail, age, gender, country, occupation, date_creation, description)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -236,13 +255,25 @@ class MessagesORM(object):
         self.cursor = self.conn.cursor()
 
     def disconnect(self):
+        """
+        close the connection to the DB file.
+        """
+        
         if self.conn:
             self.conn.close()
 
     def commit(self):
+        """
+        Commit the changes done to the tables in the DB file so that it will be saved.
+        """
+        
         self.conn.commit()
 
     def create_table(self):
+        """
+        Creates a new table "Messages" in the database if one does not already exists yet, to represent the messages inside conversations (see attributes of the MessageStruct class).
+        """
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS Messages (
                 message_id INTEGER PRIMARY KEY,
@@ -409,13 +440,25 @@ class ConversationsORM(object):
         self.cursor = self.conn.cursor()
 
     def disconnect(self):
+        """
+        close the connection to the DB file.
+        """
+        
         if self.conn:
             self.conn.close()
 
     def commit(self):
+        """
+        Commit the changes done to the tables in the DB file so that it will be saved.
+        """
+        
         self.conn.commit()
 
     def create_table(self):
+        """
+        Creates a new table "Conversations" in the database if one does not already exists yet, to represent the conversation that users have created (see attributes of the ConversationStruct class).
+        """
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS Conversations (
                 conversation_id INTEGER PRIMARY KEY,
@@ -561,13 +604,25 @@ class UserMessageVotesORM(object):
         self.cursor = self.conn.cursor()
 
     def disconnect(self):
+        """
+        close the connection to the DB file.
+        """
+        
         if self.conn:
             self.conn.close()
 
     def commit(self):
+        """
+        Commit the changes done to the tables in the DB file so that it will be saved.
+        """
+        
         self.conn.commit()
 
     def create_table(self):
+        """
+        Creates a new table "UsersMessagesVotes" in the database if one does not already exists yet, to represent the user votes on messages (see attributes of the UsersMessagesVotes class).
+        """
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS UsersMessagesVotes (
                 user_message_vote_id INTEGER PRIMARY KEY,
@@ -655,13 +710,25 @@ class UserConversationPinsORM(object):
         self.cursor = self.conn.cursor()
 
     def disconnect(self):
+        """
+        close the connection to the DB file.
+        """
+        
         if self.conn:
             self.conn.close()
 
     def commit(self):
+        """
+        Commit the changes done to the tables in the DB file so that it will be saved.
+        """
+        
         self.conn.commit()
 
     def create_table(self):
+        """
+        Creates a new table "UsersConversationsPins" in the database if one does not already exists yet, to represent the user pins on conversations (see attributes of the UsersConversationsPins class).
+        """
+        
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS UsersConversationsPins (
                 user_conversation_pin_id INTEGER PRIMARY KEY,
