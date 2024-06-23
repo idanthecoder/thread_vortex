@@ -11,11 +11,11 @@ class EncryptionHandler:
         # start with diffie hellman key agreement
 
         # Example parameters for Diffie-Hellman key exchange
-        self.p = 23456789012345678901234567890123456789  # Prime number
-        self.g = 5  # Generator
+        self.p = 8683317618811886495518194401279999999  # Prime number
+        self.g = 265252859812191058636308479999999  # Generator
 
         # self.private_key = 1234567890123456789012345678901234567890
-        self.private_key = rnd.randint(1, 10 ** 20)
+        self.private_key = rnd.randint(1, pow(10, 20))
 
         self.public_key = pow(self.g, self.private_key, self.p)
 
@@ -33,6 +33,7 @@ class EncryptionHandler:
             other_public_key = int(data[1])
 
             self.shared_secret = pow(other_public_key, self.private_key, self.p)
+            print(f"secret is: {self.shared_secret}")
             self.encryption_key = PBKDF2(str(self.shared_secret), salt=b'', dkLen=16)  # Derive a 128-bit key
 
     def cipher_data(self, data):
