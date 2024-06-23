@@ -102,23 +102,37 @@ class TCPServer:
                 command = data_split[0]
                 fields = data_split[1:]
                 
+                #if command == "REGUSR":
+                #    register_status = users_db.registeration_checks(fields[0], fields[2])
+                #    
+                #    if not register_status:
+                #        salt = hash_handler.gen_salt()
+                #        pepper = hash_handler.get_global_pepper()
+                #        password = hash_handler.hash_password(pepper + salt + fields[1])
+                #        user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8]) # fields[7] should be datetime that I ran when the user sent the information (date_creation) and not an input of the user
+                #        users_db.insert_user(user, salt)
+                #        to_send = f"REGUSR|new_user"
+                #    else:
+                #        if register_status[0] == "name_mail_issue":
+                #            to_send = f"REGUSR|name_mail_taken"
+                #        elif register_status[0] == "name_issue":
+                #            to_send = f"REGUSR|name_taken"
+                #        elif register_status[0] == "mail_issue":
+                #            to_send = f"REGUSR|mail_taken"
                 if command == "REGUSR":
-                    register_status = users_db.registeration_checks(fields[0], fields[2])
                     
-                    if not register_status:
-                        salt = hash_handler.gen_salt()
-                        pepper = hash_handler.get_global_pepper()
-                        password = hash_handler.hash_password(pepper + salt + fields[1])
-                        user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8]) # fields[7] should be datetime that I ran when the user sent the information (date_creation) and not an input of the user
-                        users_db.insert_user(user, salt)
+                    salt = hash_handler.gen_salt()
+                    pepper = hash_handler.get_global_pepper()
+                    password = hash_handler.hash_password(pepper + salt + fields[1])
+                    user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8]) # fields[7] should be datetime that I ran when the user sent the information (date_creation) and not an input of the user
+                    register_status = users_db.insert_user(user, salt)
+                    
+                    if register_status == "no_issue":
                         to_send = f"REGUSR|new_user"
-                    else:
-                        if register_status[0] == "name_mail_issue":
-                            to_send = f"REGUSR|name_mail_taken"
-                        elif register_status[0] == "name_issue":
-                            to_send = f"REGUSR|name_taken"
-                        elif register_status[0] == "mail_issue":
-                            to_send = f"REGUSR|mail_taken"
+                    elif register_status == "mail_issue":
+                        to_send = f"REGUSR|mail_taken"
+                    elif register_status == "name_issue":
+                        to_send = f"REGUSR|name_taken"
                 elif command == "LOGUSR":
                     user_data = users_db.enter_account(fields[0], fields[1], fields[2])
 

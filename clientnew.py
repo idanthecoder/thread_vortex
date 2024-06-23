@@ -362,8 +362,8 @@ class RegisterPage(ctk.CTkFrame):
             if data[1] == "new_user":
                 self.controller.show_page(HomePage_Connected)
                 return
-            elif data[1] == "name_mail_taken":
-                messagebox.showwarning("Warning", "Username and mail already in use")
+            #elif data[1] == "name_mail_taken":
+            #    messagebox.showwarning("Warning", "Username and mail already in use")
             elif data[1] == "name_taken":
                 messagebox.showwarning("Warning", "Username already in use")
             elif data[1] == "mail_taken":
@@ -414,6 +414,7 @@ class EnterVerificationCode(ctk.CTkFrame):
     def check_verify(self, code):
         if code == current_conf_code:
             # verified
+            self.timer.stop_timer_smoothly()
             self.callback()
         else:
             messagebox.showwarning("Warning", "Wrong code")
@@ -470,7 +471,7 @@ class DynamicTime(ctk.CTkFrame):
             
     def stop_timer_smoothly(self):
         self.update_continuously = ctk.BooleanVar(master=self, value=False)
-        self.after_cancel(self.job)              
+        self.after_cancel(self.job)
 
 
 class LoginPage(ctk.CTkFrame):

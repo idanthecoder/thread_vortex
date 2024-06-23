@@ -82,11 +82,29 @@ class UsernamePasswordORM(object):
             salt (str): _description_
         """
         
-        self.cursor.execute('''
-            INSERT INTO Users (username, password, salt, mail, age, gender, country, occupation, date_creation, description)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (user.username, user.password, salt, user.mail, user.age, user.gender, user.country, user.occupation, user.date_creation, user.description))
-        self.commit()
+        try:
+            self.cursor.execute('''
+                INSERT INTO Users (username, password, salt, mail, age, gender, country, occupation, date_creation, description)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (user.username, user.password, salt, user.mail, user.age, user.gender, user.country, user.occupation, user.date_creation, user.description))
+            self.commit()
+            
+            return "no_issue"
+            
+        except sqlite3.IntegrityError as e:
+            if "UNIQUE constraint failed: Users.mail" in str(e):
+                # Handle the specific case where the mail already exists
+                print("Error: Email address already registered.")
+                return "mail_issue"
+            elif "UNIQUE constraint failed: Users.username" in str(e):
+                # Handle the specific case where the username already exists
+                print("Error: username already registered.")
+                return "name_issue"
+            else:
+                # shouldn't really reach here - if printed then there is an unexpected bug
+                print(f"IntegrityError: {e}")
+                return
+            
 
     def print_table(self, table_name):
         table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
