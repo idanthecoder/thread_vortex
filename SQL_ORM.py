@@ -176,29 +176,29 @@ class UsernamePasswordORM(object):
         self.commit()
 
     
-    def registeration_checks(self, username, mail):
-        """
-        Process: conduct all checks for registeration - mail and username must be unique
-        :parameter: username (string), mail (string)
-        :return: a list ([] means success, other results explain the issue)
-        """
-        
-        # search for the existence of the name and mail
-        name_in_data = (self.cursor.execute(f'''SELECT * FROM Users
-                                   WHERE username = ? ''', (username,)).fetchall())
-        mail_in_data = (self.cursor.execute(f'''SELECT * FROM Users
-                                   WHERE mail = ? ''', (mail,)).fetchall())
-        
-        # return if both mail and name are unavailable or just one of them
-        if name_in_data and mail_in_data:
-            return ["name_mail_issue"]
-        elif name_in_data:
-            return ["name_issue"]
-        elif mail_in_data:
-            return ["mail_issue"]
-        
-        # a valid regiseration
-        return []
+    #def registeration_checks(self, username, mail):
+    #    """
+    #    Process: conduct all checks for registeration - mail and username must be unique
+    #    :parameter: username (string), mail (string)
+    #    :return: a list ([] means success, other results explain the issue)
+    #    """
+    #    
+    #    # search for the existence of the name and mail
+    #    name_in_data = (self.cursor.execute(f'''SELECT * FROM Users
+    #                               WHERE username = ? ''', (username,)).fetchall())
+    #    mail_in_data = (self.cursor.execute(f'''SELECT * FROM Users
+    #                               WHERE mail = ? ''', (mail,)).fetchall())
+    #    
+    #    # return if both mail and name are unavailable or just one of them
+    #    if name_in_data and mail_in_data:
+    #        return ["name_mail_issue"]
+    #    elif name_in_data:
+    #        return ["name_issue"]
+    #    elif mail_in_data:
+    #        return ["mail_issue"]
+    #    
+    #    # a valid regiseration
+    #    return []
     
     
     def enter_account(self, username, password, mail):
@@ -490,11 +490,24 @@ class ConversationsORM(object):
         self.commit()
 
     def insert_conversation(self, conversation: classes.ConversationStruct):
-        self.cursor.execute('''
-            INSERT INTO Conversations (title, creator_username, creation_date, restrictions)
-            VALUES (?, ?, ?, ?)
-        ''', (conversation.title, conversation.creator_username, conversation.creation_date, conversation.restrictions))
-        self.commit()
+        try:
+            self.cursor.execute('''
+                INSERT INTO Conversations (title, creator_username, creation_date, restrictions)
+                VALUES (?, ?, ?, ?)
+            ''', (conversation.title, conversation.creator_username, conversation.creation_date, conversation.restrictions))
+            self.commit()
+            
+            return "no_issue"
+            
+        except sqlite3.IntegrityError as e:
+            if "UNIQUE constraint failed: Conversations.title" in str(e):
+                # Handle the specific case where the mail already exists
+                print("Error: Email address already registered.")
+                return "title_issue"
+            else:
+                # shouldn't really reach here - if printed then there is an unexpected bug
+                print(f"IntegrityError: {e}")
+                return
 
     def print_table(self, table_name):
         table_list = [a for a in self.cursor.execute(f"SELECT * FROM {table_name}")]
@@ -563,17 +576,17 @@ class ConversationsORM(object):
         # in this case there are new conversations, just not the requested amount
         return return_lst
 
-    def conversation_checks(self, title):
-        # search for the existence of the name and mail
-        title_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
-                                   WHERE title = ? ''', (title,)).fetchall())
-        
-        # return if both mail and name are unavailable or just one of them
-        if title_in_data :
-            return ["title_exists"]
-        
-        # a valid regiseration
-        return []
+    #def conversation_checks(self, title):
+    #    # search for the existence of the name and mail
+    #    title_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
+    #                               WHERE title = ? ''', (title,)).fetchall())
+    #    
+    #    # return if both mail and name are unavailable or just one of them
+    #    if title_in_data :
+    #        return ["title_exists"]
+    #    
+    #    # a valid regiseration
+    #    return []
 
     def search_for(self, search_for):
         search_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
