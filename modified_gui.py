@@ -2,6 +2,15 @@ import customtkinter as ctk
 
 
 class ModifiedCTkScrollableFrame(ctk.CTkScrollableFrame):
+    """
+    A class that inherits from the CTkScrollableFrame class, and therefore behaves as a customtkinter ScrollableFrame.
+    This class is, in a way, an upgraded version of the ScrollableFrame that calls a function of choice when close to the end of the screen.
+
+    Attributes:
+        func (function): A function to call when near the end of the screen.
+        args (tuple): Arguments to give as parameters to the function if needed.
+    """
+    
     def __init__(self, master):
         super().__init__(master)
         

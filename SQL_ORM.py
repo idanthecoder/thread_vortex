@@ -75,11 +75,15 @@ class UsernamePasswordORM(object):
         self.commit()
 
     def insert_user(self, user: classes.User, salt):
-        """
+        """ 
+        Insert a new user into the Users table. If there is an integrity error, then the name/mail are already used by another, and therefore the user won't be inserted and an error string will be returned.
 
         Args:
-            user (classes.User): _description_
-            salt (str): _description_
+            user (classes.User): User data.
+            salt (str): Salt that the password was hashed with.
+
+        Returns:
+            str: State of registeration (success/fail).
         """
         
         try:
@@ -305,6 +309,13 @@ class MessagesORM(object):
         self.commit()
 
     def insert_message(self, message: classes.MessageStruct):
+        """ 
+        Insert a new message into the Messages table.
+
+        Args:
+            message (classes.MessageStruct): Message data.
+        """
+        
         self.cursor.execute('''
             INSERT INTO Messages (content, date_published, sender_username, conversation_title)
             VALUES (?, ?, ?, ?)
@@ -490,6 +501,16 @@ class ConversationsORM(object):
         self.commit()
 
     def insert_conversation(self, conversation: classes.ConversationStruct):
+        """ 
+        Insert a new conversation into the Conversations table. If there is an integrity error, then the title is already used , and therefore the conversation won't be inserted and an error string will be returned.
+
+        Args:
+            conversation (classes.ConversationStruct): Conversation data.
+
+        Returns:
+            str: State of conversation creation (success/fail).
+        """
+        
         try:
             self.cursor.execute('''
                 INSERT INTO Conversations (title, creator_username, creation_date, restrictions)
@@ -666,6 +687,13 @@ class UserMessageVotesORM(object):
         self.commit()
 
     def insert_message_vote(self, votes: classes.UsersMessagesVotes):
+        """ 
+        Insert a new vote into the Votes table.
+
+        Args:
+            votes (classes.UsersMessagesVotes): Vote data.
+        """
+        
         self.cursor.execute('''
             INSERT INTO UsersMessagesVotes (username, message_id, vote)
             VALUES (?, ?, ?)
@@ -772,6 +800,13 @@ class UserConversationPinsORM(object):
         self.commit()
 
     def insert_conversation_pin(self, pins: classes.UsersConversationsPins):
+        """ 
+        Insert a new pin into the Pins table.
+
+        Args:
+            pin (classes.UsersConversationsPins): Pin data.
+        """
+        
         self.cursor.execute('''
             INSERT INTO UsersConversationsPins (username, conversation_title, pin)
             VALUES (?, ?, ?)

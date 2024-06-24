@@ -4,9 +4,10 @@ import secrets
 
 def gen_salt():
     """
-    Process: Get a randomly generated and URL safe string (16 chars)
-    :parameter: Nothing
-    :return: A random and URL safe string of 16 chars
+    Produces a randomly generated and URL safe string (16 chars) and returns it.
+
+    Returns:
+        str: A random and URL safe string of 16 chars
     """
     
     return secrets.token_urlsafe(16)
@@ -14,9 +15,10 @@ def gen_salt():
 
 def get_global_pepper():
     """
-    Process: Get a predetermined URL safe string (32 chars)
-    :parameter: Nothing
-    :return: An URL safe string of 32 chars
+    Produces a predetermined URL safe string (32 chars) and returns it.
+
+    Returns:
+        str: An URL safe string of 32 chars
     """
     
     # i manually generated the pepper using secrets.token_urlsafe(32), and hard coded as a constant string saved in this function
@@ -25,9 +27,13 @@ def get_global_pepper():
 
 def hash_password(text: str):
     """
-    Process: Hash a string in SHA256 and return the hash in hexadecimal
-    :parameter: password (str)
-    :return: password_hash (the hashed password in hexadecimal)
+    Hashes a given string in SHA256 and return the product in hexadecimal format.
+
+    Args:
+        text (str): A text that is to be hashed (like a password).
+
+    Returns:
+        str: the hashed password in hexadecimal format.
     """
     
     # use SHA256 to hash the text (in this code it will be mostly passwords), then return the hexadecimal of the hash value
