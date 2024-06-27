@@ -33,7 +33,6 @@ class EncryptionHandler:
             other_public_key = int(data[1])
 
             self.shared_secret = pow(other_public_key, self.private_key, self.p)
-            print(f"secret is: {self.shared_secret}")
             self.encryption_key = PBKDF2(str(self.shared_secret), salt=b'', dkLen=16)  # Derive a 128-bit key
 
     def cipher_data(self, data):

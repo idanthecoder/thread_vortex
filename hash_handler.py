@@ -7,7 +7,7 @@ def gen_salt():
     Produces a randomly generated and URL safe string (16 chars) and returns it.
 
     Returns:
-        str: A random and URL safe string of 16 chars
+        str: A random and URL safe string of 16 chars.
     """
     
     return secrets.token_urlsafe(16)
@@ -18,7 +18,7 @@ def get_global_pepper():
     Produces a predetermined URL safe string (32 chars) and returns it.
 
     Returns:
-        str: An URL safe string of 32 chars
+        str: An URL safe string of 32 chars.
     """
     
     # i manually generated the pepper using secrets.token_urlsafe(32), and hard coded as a constant string saved in this function

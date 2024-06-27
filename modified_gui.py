@@ -12,21 +12,36 @@ class ModifiedCTkScrollableFrame(ctk.CTkScrollableFrame):
     """
     
     def __init__(self, master):
+        """
+        The constructor for ModifiedCTkScrollableFrame class.
+
+        Args:
+            master (CTk): The master window / parent of the ModifiedCTkScrollableFrame, can be a CTk window, or CTkFrame / CTkScrollableFrame.
+        """
+        
         super().__init__(master)
         
         self.func = None
         self.args = None
         # Bind the scrollbar's scroll event to the custom function (currently it gets more conversation but may use this for more things)
-        self._scrollbar.bind("<B1-Motion>", self._on_scroll) # the left mouse button
-        self._scrollbar.bind("<MouseWheel>", self._on_scroll) # the mouse wheel (if cursor on the scrollbar)
-        self.bind("<MouseWheel>", self._on_scroll) # using the mouse whell (if cursor on the frame)
+        self._scrollbar.bind("<B1-Motion>", self.on_scroll) # the left mouse button
+        self._scrollbar.bind("<MouseWheel>", self.on_scroll) # the mouse wheel (if cursor on the scrollbar)
+        self.bind("<MouseWheel>", self.on_scroll) # using the mouse whell (if cursor on the frame)
 
-    def _on_scroll(self, event):
+    def on_scroll(self, event):
+        """
+        The method to call when a scrolling event occurs that will check if the scrollbar is near the end of the screen and call a random function.
+        """
+        
         # Check if the scrollbar is near the end
         if self._scrollbar.get()[1] >= 0.95:
-            self._custom_function()
+            self.custom_function()
 
-    def _custom_function(self):
+    def custom_function(self):
+        """
+        Call a custom function.
+        """
+        
         #print("Scrollbar reached near the end!")
         if len(self.args) == 0:
             self.func()
@@ -34,5 +49,12 @@ class ModifiedCTkScrollableFrame(ctk.CTkScrollableFrame):
             self.func(*self.args)
         
     def set_func(self, func, *args):
+        """
+        Set the function to run and its arguments.
+
+        Args:
+            func (function): The function to call.
+        """
+        
         self.func = func
         self.args = args

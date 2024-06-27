@@ -9,9 +9,13 @@ LEN_TO_PRINT = 100
 
 def recv_by_size(sock):
     """
-    Process: Receives data of any size and returns it as bytes (still encoded)
-    :parameter: sock (socket)
-    :return: data (bytes)
+    Extracts the size of the received data and then extracts the remaining relevant data until the size that was stated. Then return the data (still in bytes).
+
+    Args:
+        sock (socket): The socket to recieve data from.
+
+    Returns:
+        bytes: The received data.
     """
 
     size_header = b''
@@ -42,9 +46,11 @@ def recv_by_size(sock):
 
 def send_with_size(sock, bdata):
     """
-    Process: Sends encoded data of any size
-    :parameter: sock (socket), bdata (bytes / string)
-    :return: nothing
+    Sends encoded data, and pads the size of the data to the start of the data chunk.
+
+    Args:
+        sock (socket): The socket in which to send the data.
+        bdata (bytes | str): The data to send. If the data is str it will be encoded before sending it.
     """
 
     if type(bdata) == str:

@@ -259,11 +259,14 @@ class RegisterPage(ctk.CTkFrame):
         
         self.controller = controller
 
-        self.label = ctk.CTkLabel(self, text="Register Page", font=("Helvetica", 32))
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
+
+        self.label = ctk.CTkLabel(self.top_frame, text="Register Page", font=("Helvetica", 32))
         self.label.pack(pady=10, padx=10)
         
-        self.line = ctk.CTkFrame(self, height=1, fg_color="black", border_color="black", border_width=1)
-        self.line.pack(fill=ctk.X, expand=True)
+        #self.line = ctk.CTkFrame(self, height=1, fg_color="black", border_color="black", border_width=1)
+        #self.line.pack(fill=ctk.X, expand=True)
 
         # Left Frame
         self.left_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
@@ -274,9 +277,9 @@ class RegisterPage(ctk.CTkFrame):
         self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
         
         self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
-        self.bottom_frame.pack(anchor=ctk.S, fill=ctk.X, expand=True, padx=10, pady=10)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
 
-        self.mandate_label = ctk.CTkLabel(self.left_frame, text="Mandatory fields:", font=("Helvetica", 24))
+        self.mandate_label = ctk.CTkLabel(self.left_frame, text="Mandatory fields:", font=("Helvetica", 26))
         self.mandate_label.pack(pady=2)
 
         self.name_label = ctk.CTkLabel(self.left_frame, text="Name:")
@@ -320,10 +323,10 @@ class RegisterPage(ctk.CTkFrame):
         self.description_entry.pack(pady=4)
 
         self.register_button = ctk.CTkButton(self.bottom_frame, text="Register", command=lambda: self.user_register_h(self.name_entry.get(), self.password_entry.get(), self.email_entry.get(), self.age_entry.get(), self.gender_entry.get(), self.country_entry.get(), self.occupation_entry.get(), self.description_entry.get("1.0", "end-1c")))
-        self.register_button.pack(pady=10)
+        self.register_button.pack(padx=5, pady=10)
         
         self.go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
-        self.go_back_button.pack(pady=10)
+        self.go_back_button.pack(padx=5, pady=10)
     
     def user_register_h(self, username, password, mail, age: str, gender, country, occupation, description):
         #global user_profile
@@ -392,6 +395,10 @@ class EnterVerificationCode(ctk.CTkFrame):
         
         self.controller = controller
         current_conf_code = email_handler.send_conformation_mail(mail)
+        if current_conf_code is None:
+            # at this point the timer hasn't started yet so no need to stop it.
+            messagebox.showerror("Error", "Email address entered is not in the affirmative format.")
+            self.controller.show_page(class_return_to)
         self.callback = callback
         self.class_return_to = class_return_to
 
@@ -440,7 +447,7 @@ class DynamicTime(ctk.CTkFrame):
         
         # Create timer label
         self.timer_label = ctk.CTkLabel(self, text="")
-        self.timer_label.pack(pady=20)
+        self.timer_label.pack(padx=5, pady=20)
         
         self.update_continuously = ctk.BooleanVar(master=self, value=True)
 
@@ -478,29 +485,52 @@ class LoginPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
 
-        label = ctk.CTkLabel(self, text="Login Page", font=("Helvetica", 16))
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
+
+        label = ctk.CTkLabel(self.top_frame, text="Login Page", font=("Helvetica", 32))
         label.pack(pady=10, padx=10)
-
-        name_label = ctk.CTkLabel(self, text="Name:")
-        name_label.pack()
-        name_entry = ctk.CTkEntry(self)
-        name_entry.pack()
-
-        password_label = ctk.CTkLabel(self, text="Password:")
-        password_label.pack()
-        password_entry = ctk.CTkEntry(self, show="*")
-        password_entry.pack()
         
-        email_label = ctk.CTkLabel(self, text="Email:")
-        email_label.pack()
-        email_entry = ctk.CTkEntry(self)
-        email_entry.pack()
-
-        login_button = ctk.CTkButton(self, text="Login", command=lambda: self.user_login(controller, name_entry.get(), password_entry.get(), email_entry.get()))
-        login_button.pack(pady=10)
+        self.first_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.first_frame.pack(padx=20, pady=10)
         
-        go_back_button = ctk.CTkButton(self, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
-        go_back_button.pack(pady=10)
+        self.second_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.second_frame.pack(padx=20, pady=10)
+
+        self.third_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.third_frame.pack(padx=20, pady=10)
+        
+        self.picture_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.picture_frame.pack(padx=20, pady=5)
+        #welcome back icon 1.png
+        welcome_icon_image = Image.open(fp=os.path.join("assets","welcome back icon 1.png"))
+        self.welcome_icon = ctk.CTkImage(light_image=welcome_icon_image, size=(100, 100))
+        self.welcome_label = ctk.CTkLabel(self.picture_frame, text="", image=self.welcome_icon)
+        self.welcome_label.pack(pady=2)
+        
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
+
+        name_label = ctk.CTkLabel(self.first_frame, text="Name:")
+        name_label.pack(padx=5, pady=5)
+        name_entry = ctk.CTkEntry(self.first_frame)
+        name_entry.pack(padx=5, pady=5)
+
+        password_label = ctk.CTkLabel(self.second_frame, text="Password:")
+        password_label.pack(padx=5, pady=5)
+        password_entry = ctk.CTkEntry(self.second_frame, show="*")
+        password_entry.pack(padx=5, pady=5)
+        
+        email_label = ctk.CTkLabel(self.third_frame, text="Email:")
+        email_label.pack(padx=5, pady=5)
+        email_entry = ctk.CTkEntry(self.third_frame)
+        email_entry.pack(padx=5, pady=5)
+
+        login_button = ctk.CTkButton(self.bottom_frame, text="Login", command=lambda: self.user_login(controller, name_entry.get(), password_entry.get(), email_entry.get()))
+        login_button.pack(padx=5, pady=10)
+        
+        go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
+        go_back_button.pack(padx=5, pady=10)
     
     def user_login(self, controller, name, password, email):
         global user_profile
@@ -530,19 +560,39 @@ class ForgotPassword(ctk.CTkFrame):
         
         self.controller = controller
         
-        self.email_label = ctk.CTkLabel(self, text="Email:")
-        self.email_label.pack()
-        self.email_entry = ctk.CTkEntry(self)
-        self.email_entry.pack()
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
+
+        label = ctk.CTkLabel(self.top_frame, text="Forgot Password Page", font=("Helvetica", 32))
+        label.pack(pady=10, padx=10)
         
-        self.verify_mail_button = ctk.CTkButton(self, text="Verify Email", command=self.go_verify)
+        self.first_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.first_frame.pack(padx=10, pady=10)
+        
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
+        
+        self.email_label = ctk.CTkLabel(self.first_frame, text="Email:")
+        self.email_label.pack(padx=10, pady=5)
+        self.email_entry = ctk.CTkEntry(self.first_frame)
+        self.email_entry.pack(padx=10, pady=5)
+        
+        self.picture_frame = ctk.CTkFrame(self)
+        self.picture_frame.pack(padx=20, pady=5)
+
+        shield_icon_image = Image.open(fp=os.path.join("assets","shield checkbox icon 1.png"))
+        self.shield_icon = ctk.CTkImage(light_image=shield_icon_image, size=(200, 200))
+        self.shield_label = ctk.CTkLabel(self.picture_frame, text="", image=self.shield_icon)
+        self.shield_label.pack(pady=20)
+        
+        self.verify_mail_button = ctk.CTkButton(self.bottom_frame, text="Verify Email", command=self.go_verify)
         self.verify_mail_button.pack(pady=10)
 
         #new_password_button = ctk.CTkButton(self, text="Login", command=lambda: self.user_login(controller, name_entry.get(), password_entry.get(), email_entry.get()))
         #new_password_button.pack(pady=10)
         
-        self.go_back_button = ctk.CTkButton(self, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
-        self.go_back_button.pack(pady=10)
+        self.go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to opening screen", command=lambda: controller.show_page(OpeningScreen))
+        self.go_back_button.pack(padx=5, pady=10)
     
     def go_verify(self):
         self.mail = self.email_entry.get()
