@@ -1633,7 +1633,6 @@ class FailedToload(ctk.CTk):
         self.failed_label = ctk.CTkLabel(self.center_frame, text="Server currently offline.\nTry connecting again later.", font=("Roboto", 40))
         self.failed_label.pack(pady=5)
 
-
 if __name__ == "__main__":
     try:
         # with open the socket so that it closes if any bug occurs.
