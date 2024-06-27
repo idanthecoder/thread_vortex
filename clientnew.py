@@ -216,10 +216,10 @@ class OpeningScreen(ctk.CTkFrame):
         self.top_frame.pack(side=ctk.TOP, fill=ctk.X, expand=True, padx=20, pady=20)
 
         # Logo
-        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))  # Replace with your logo path
+        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))
         self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(400, 246))
-        logo_label = ctk.CTkLabel(self.top_frame, image=self.logo_icon, text="")
-        logo_label.pack(pady=5)
+        self.logo_label = ctk.CTkLabel(self.top_frame, image=self.logo_icon, text="")
+        self.logo_label.pack(pady=5)
 
         self.credits_label = ctk.CTkLabel(self.top_frame, text="Created by Idan Barkin", font=("Roboto", 40))
         self.credits_label.pack(pady=5)
@@ -233,7 +233,7 @@ class OpeningScreen(ctk.CTkFrame):
         self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=20)
 
         # Chat icon
-        chat_icon_image = Image.open(os.path.join("assets","conversation icon 2.png"))  # Replace with your icon path
+        chat_icon_image = Image.open(os.path.join("assets","conversation icon 2.png"))
         self.chat_icon = ctk.CTkImage(light_image=chat_icon_image, size=(100, 100))
         self.chat_label = ctk.CTkLabel(self.left_frame, image=self.chat_icon, text="")
         self.chat_label.pack(pady=10)
@@ -244,7 +244,7 @@ class OpeningScreen(ctk.CTkFrame):
         self.forgot_password_button = ctk.CTkButton(self.left_frame, text="Forgot password", command=lambda: controller.show_page(ForgotPassword), width=120, height=32, font=("Roboto", 14))
         self.forgot_password_button.pack(pady=5)
         
-        new_icon_image = Image.open(os.path.join("assets","new icon 2.png"))  # Replace with your icon path
+        new_icon_image = Image.open(os.path.join("assets","new icon 2.png")) 
         self.new_icon = ctk.CTkImage(light_image=new_icon_image, size=(100, 100))
         self.new_label = ctk.CTkLabel(self.right_frame, image=self.new_icon, text="")
         self.new_label.pack(pady=5)
@@ -258,6 +258,9 @@ class RegisterPage(ctk.CTkFrame):
         super().__init__(parent)
         
         self.controller = controller
+
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=5)
 
         self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
         self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
@@ -275,9 +278,6 @@ class RegisterPage(ctk.CTkFrame):
         # Right Frame
         self.right_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
         self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
-        
-        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
-        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
 
         self.mandate_label = ctk.CTkLabel(self.left_frame, text="Mandatory fields:", font=("Helvetica", 26))
         self.mandate_label.pack(pady=2)
@@ -402,21 +402,39 @@ class EnterVerificationCode(ctk.CTkFrame):
         self.callback = callback
         self.class_return_to = class_return_to
 
-        self.label = ctk.CTkLabel(self, text="Verification Page", font=("Helvetica", 16))
-        self.label.pack(pady=10, padx=10)
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
 
-        self.verify_label = ctk.CTkLabel(self, text="Enter verification code (sent in mail):")
-        self.verify_label.pack()
-        self.verify_entry = ctk.CTkEntry(self)
-        self.verify_entry.pack()
+        self.label = ctk.CTkLabel(self.top_frame, text="Verification Page", font=("Helvetica", 32))
+        self.label.pack(pady=10, padx=10)
         
-        self.confirm_button = ctk.CTkButton(self, text="Confirm", command=lambda: self.check_verify(self.verify_entry.get()))
-        self.confirm_button.pack(pady=10)
+        self.first_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.first_frame.pack(padx=20, pady=10)
         
-        self.timer = DynamicTime(self, self.controller, mail, self.class_return_to)
+        #wwe
+        self.picture_frame = ctk.CTkFrame(self)
+        self.picture_frame.pack(padx=20, pady=5)
+        #welcome back icon 1.png
+        mail_verify_image = Image.open(fp=os.path.join("assets","mail verify icon 1.png"))
+        self.mail_verify_icon = ctk.CTkImage(light_image=mail_verify_image, size=(200, 200))
+        self.mail_verify_label = ctk.CTkLabel(self.picture_frame, text="", image=self.mail_verify_icon)
+        self.mail_verify_label.pack(pady=2)
         
-        self.go_back_button = ctk.CTkButton(self, text="Return to previous screen", command=self.return_and_stop_time)
-        self.go_back_button.pack(pady=10)
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
+
+        self.verify_label = ctk.CTkLabel(self.first_frame, text="Enter verification code (sent in mail):")
+        self.verify_label.pack(padx=10, pady=5)
+        self.verify_entry = ctk.CTkEntry(self.first_frame)
+        self.verify_entry.pack(padx=10, pady=5)
+        
+        self.timer = DynamicTime(self.first_frame, self.controller, mail, self.class_return_to)
+        
+        self.confirm_button = ctk.CTkButton(self.bottom_frame, text="Confirm", command=lambda: self.check_verify(self.verify_entry.get()))
+        self.confirm_button.pack(padx=10, pady=5)
+        
+        self.go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to previous screen", command=self.return_and_stop_time)
+        self.go_back_button.pack(padx=10, pady=5)
     
     def check_verify(self, code):
         if code == current_conf_code:
@@ -446,7 +464,7 @@ class DynamicTime(ctk.CTkFrame):
         self.timer_duration = 300  # 5 minutes
         
         # Create timer label
-        self.timer_label = ctk.CTkLabel(self, text="")
+        self.timer_label = ctk.CTkLabel(self, text="", font=("Helvetica", 26))
         self.timer_label.pack(padx=5, pady=20)
         
         self.update_continuously = ctk.BooleanVar(master=self, value=True)
@@ -625,15 +643,37 @@ class ChoosePassword(ctk.CTkFrame):
         self.controller = controller
         self.mail = mail
         
-        self.new_password_label = ctk.CTkLabel(self, text="Enter new password:")
-        self.new_password_label.pack()
-        self.new_password_entry = ctk.CTkEntry(self)
-        self.new_password_entry.pack()
-        self.new_password_button = ctk.CTkButton(self, text="Set new password", command=lambda: self.send_new_password_server(self.new_password_entry.get()))
-        self.new_password_button.pack()
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
+
+        label = ctk.CTkLabel(self.top_frame, text="Choose a new password", font=("Helvetica", 32))
+        label.pack(pady=10, padx=10)
         
-        self.go_back_button = ctk.CTkButton(self, text="Return to forgot password screen", command=lambda: controller.show_page(ForgotPassword))
-        self.go_back_button.pack(pady=10)
+        self.first_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.first_frame.pack(padx=10, pady=10)
+        
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
+        #wwe
+        
+        self.new_password_label = ctk.CTkLabel(self.first_frame, text="Enter new password:")
+        self.new_password_label.pack(padx=10, pady=5)
+        self.new_password_entry = ctk.CTkEntry(self.first_frame)
+        self.new_password_entry.pack(padx=10, pady=5)
+        self.new_password_button = ctk.CTkButton(self.bottom_frame, text="Set new password", command=lambda: self.send_new_password_server(self.new_password_entry.get()))
+        self.new_password_button.pack(padx=10, pady=5)
+        
+        
+        self.picture_frame = ctk.CTkFrame(self)
+        self.picture_frame.pack(padx=20, pady=10)
+
+        new_pass_icon_image = Image.open(fp=os.path.join("assets","new password icon 1.png"))
+        self.new_pass_icon = ctk.CTkImage(light_image=new_pass_icon_image, size=(220, 222))
+        self.new_pass_label = ctk.CTkLabel(self.picture_frame, text="", image=self.new_pass_icon)
+        self.new_pass_label.pack(padx=10, pady=5)
+        
+        self.go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to forgot password screen", command=lambda: controller.show_page(ForgotPassword))
+        self.go_back_button.pack(padx=10, pady=5)
     
     
     def send_new_password_server(self, new_password):
@@ -661,21 +701,30 @@ class HomePage_Connected(ctk.CTkFrame):
         # Top bar with logo, search bar, and login/register buttons
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
-        self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
-        self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
+        
+        
+        #self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
+        #self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
+        
+        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))
+        self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(120, 73))
+        self.logo_label = ctk.CTkLabel(self.top_bar, image=self.logo_icon, text="", fg_color="white", bg_color="purple")
+        self.logo_label.pack(side=ctk.LEFT, padx=12, pady=1.25)
+        
+        
         self.search_bar = ctk.CTkEntry(self.top_bar)
         self.search_bar.pack(side=ctk.LEFT, padx=1)
-        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_h(self.search_bar.get()))
+        self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", border_color="black", border_width=3, fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_h(self.search_bar.get()))
         self.search_button.pack(side=ctk.LEFT)
-        self.disconnect_button = ctk.CTkButton(self.top_bar, text="Disconnect", fg_color="white", text_color="black", hover_color="cyan", command=lambda: self.disconnect(controller))
+        self.disconnect_button = ctk.CTkButton(self.top_bar, text="Disconnect", fg_color="white", text_color="black", hover_color="cyan", border_color="black", border_width=3, command=lambda: self.disconnect(controller))
         self.disconnect_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
-        self.edit_profile_button = ctk.CTkButton(self.top_bar, text="Edit Profile", fg_color="white", text_color="black", hover_color="cyan", command=lambda: controller.show_page(EditProfilePage))
+        self.edit_profile_button = ctk.CTkButton(self.top_bar, text="Edit Profile", fg_color="white", text_color="black", hover_color="cyan", border_color="black", border_width=3, command=lambda: controller.show_page(EditProfilePage))
         self.edit_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
         
         # view profile button
         view_profile_icon_image = Image.open(fp=os.path.join("assets","default user icon 2.png"))
         self.view_profile_icon = ctk.CTkImage(light_image=view_profile_icon_image, size=(40, 40))
-        self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username, class_return_to=HomePage_Connected, edited_profile=False))
+        self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, border_color="black", border_width=3, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username, class_return_to=HomePage_Connected, edited_profile=False))
         self.view_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
 
         # Sidebar with topics
@@ -685,27 +734,29 @@ class HomePage_Connected(ctk.CTkFrame):
         # new conversation button
         new_conversation_icon_image = Image.open(fp=os.path.join("assets","plus icon 3.png"))
         self.new_conversation_icon = ctk.CTkImage(light_image=new_conversation_icon_image, size=(40, 40))
-        self.new_conversation_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, text="", image=self.new_conversation_icon, command=lambda: controller.show_page(CreateNewConversation))
-        self.new_conversation_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        self.new_conversation_button = ctk.CTkButton(self.sidebar, fg_color="white", width=100, border_color="black", border_width=3, text="", image=self.new_conversation_icon, command=lambda: controller.show_page(CreateNewConversation))
+        self.new_conversation_button.pack(side=ctk.TOP, padx=2, pady=5)
         
         
         # change configuration button
-        self.configuration_frame = ctk.CTkFrame(self.sidebar, fg_color="white")
-        self.configuration_frame.pack()
+        self.configuration_frame = ctk.CTkFrame(self.sidebar, fg_color="white", border_color="black", border_width=3)
+        self.configuration_frame.pack(side=ctk.TOP, padx=2, pady=8)
         
         reconfiguration_icon_image = Image.open(fp=os.path.join("assets","sort icon 1.png"))
         self.reconfiguration_icon = ctk.CTkImage(light_image=reconfiguration_icon_image, size=(40, 40))
         self.reconfiguration_label = ctk.CTkLabel(self.configuration_frame, image=self.reconfiguration_icon, text="")
-        self.reconfiguration_label.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        self.reconfiguration_label.pack(side=ctk.TOP, padx=5, pady=5)
         
         optionmenu_var = ctk.StringVar(value="")  # set initial value
-        self.reconfiguration_combobox = ctk.CTkOptionMenu(master=self.configuration_frame,
+        self.reconfiguration_combobox = ctk.CTkOptionMenu(master=self.configuration_frame, width=100,
                                        values=["", "Sort Alphabetically", "Sort Alphabetically (Reverse)", "Sort Chronologically", "Sort Chronologically (Reverse)", "Sort By Popularity", "Sort By Popularity (Reverse)"],
                                        command=self.reconfigure_conversations_screen,
                                        variable=optionmenu_var)
-        self.reconfiguration_combobox.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        self.reconfiguration_combobox.pack(side=ctk.TOP, padx=5, pady=5)
         
+
         
+
         # choose favorite conversations
         self.setup_favourites()
 
@@ -753,8 +804,14 @@ class HomePage_Connected(ctk.CTkFrame):
     
     def setup_favourites(self):
         #self.pinned_conversations = []
-        self.pinned_frame = ctk.CTkFrame(self.sidebar, fg_color="white")
-        self.pinned_frame.pack()
+        self.pinned_frame = ctk.CTkFrame(self.sidebar, fg_color="white", border_color="black", border_width=3)
+        self.pinned_frame.pack(padx=2, pady=10)
+        
+        pinned_image = Image.open(fp=os.path.join("assets","pin icon 2.png"))
+        self.pinned_icon = ctk.CTkImage(light_image=pinned_image, size=(40, 40))
+        self.pinned_label = ctk.CTkLabel(self.pinned_frame, fg_color="white", width=100, text="", image=self.pinned_icon)
+        self.pinned_label.pack(side=ctk.TOP, padx=5, pady=5)
+        
         self.pinned_convs_titles = [""]
         # GUVCNV get user pinned conversations
         data = send_and_recieve(f"GUPCNV|{user_profile.username}")
@@ -765,11 +822,11 @@ class HomePage_Connected(ctk.CTkFrame):
                     self.pinned_convs_titles.append(convtitle)
     
         optionmenu_var = ctk.StringVar(value="")  # set initial value
-        self.pinned_combobox = ctk.CTkOptionMenu(master=self.pinned_frame,
+        self.pinned_combobox = ctk.CTkOptionMenu(master=self.pinned_frame, width=100,
                                        values=self.pinned_convs_titles,
                                        command=self.enter_pinned_conversation,
                                        variable=optionmenu_var)
-        self.pinned_combobox.pack(side=ctk.TOP, padx=1.25, pady=1.25)
+        self.pinned_combobox.pack(side=ctk.TOP, padx=5, pady=5)
     
     def add_pinned_conversation(self, conversation_title):
         self.pinned_convs_titles.append(conversation_title)
@@ -801,18 +858,24 @@ class SearchPage(ctk.CTkFrame):
             self.str_to_search = str_to_search
             self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
             self.top_bar.pack(fill=ctk.X)
-            self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
-            self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
+            
+            #self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
+            #self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
+            logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))
+            self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(120, 73))
+            self.logo_label = ctk.CTkLabel(self.top_bar, image=self.logo_icon, text="", fg_color="white", bg_color="purple")
+            self.logo_label.pack(side=ctk.LEFT, padx=12, pady=1.25)
+            
             self.search_bar = ctk.CTkEntry(self.top_bar)
             self.search_bar.pack(side=ctk.LEFT, padx=1)
-            self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", text_color="black", hover_color="cyan", width=100, command=lambda: self.search_again_h(self.search_bar.get()))
+            self.search_button = ctk.CTkButton(self.top_bar, text="Search🔎", fg_color="white", border_color="black", border_width=3, text_color="black", hover_color="cyan", width=100, command=lambda: self.search_again_h(self.search_bar.get()))
             self.search_button.pack(side=ctk.LEFT)
             
             # Sidebar with topics
             self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
             self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
             
-            self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=lambda: controller.show_page(HomePage_Connected))
+            self.go_back_button = ctk.CTkButton(self.sidebar, fg_color="white", border_color="black", border_width=3, text_color="black", hover_color="cyan", width=100, text="Return to Home page", command=lambda: controller.show_page(HomePage_Connected))
             self.go_back_button.pack(side=ctk.TOP, padx=1.25, pady=1.25)
             
             # Main content area with messages
@@ -840,50 +903,65 @@ class EditProfilePage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         global user_profile
         super().__init__(parent)
-
-        label = ctk.CTkLabel(self, text="Edit Profile Page", font=("Helvetica", 16))
-        label.pack(pady=10, padx=10)
-
-        password_label = ctk.CTkLabel(self, text="Password:")
-        password_label.pack()
-        password_entry = ctk.CTkEntry(self, show="*")
-        password_entry.pack()
         
-        age_label = ctk.CTkLabel(self, text="Age:")
-        age_label.pack()
-        age_entry = ctk.CTkEntry(self)
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
+        
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
+        
+        label = ctk.CTkLabel(self.top_frame, text="Edit Profile Page", font=("Helvetica", 32))
+        label.pack(padx=10, pady=5)
+        
+        # Left Frame
+        self.left_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.left_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
+
+        # Right Frame
+        self.right_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
+        
+
+        password_label = ctk.CTkLabel(self.left_frame, text="Password:")
+        password_label.pack(padx=5, pady=5)
+        password_entry = ctk.CTkEntry(self.left_frame, show="*")
+        password_entry.pack(padx=5, pady=5)
+        
+        age_label = ctk.CTkLabel(self.left_frame, text="Age:")
+        age_label.pack(padx=5, pady=5)
+        age_entry = ctk.CTkEntry(self.left_frame)
         age_entry.insert(0, user_profile.age)
-        age_entry.pack()
+        age_entry.pack(padx=5, pady=5)
 
-        gender_label = ctk.CTkLabel(self, text="Gender:")
-        gender_label.pack()
-        gender_entry = ctk.CTkEntry(self)
+        gender_label = ctk.CTkLabel(self.left_frame, text="Gender:")
+        gender_label.pack(padx=5, pady=5)
+        gender_entry = ctk.CTkEntry(self.left_frame)
         gender_entry.insert(0, user_profile.gender)
-        gender_entry.pack()
+        gender_entry.pack(padx=5, pady=5)
 
-        country_label = ctk.CTkLabel(self, text="Country:")
-        country_label.pack()
-        country_entry = ctk.CTkEntry(self)
+        country_label = ctk.CTkLabel(self.left_frame, text="Country:")
+        country_label.pack(padx=5, pady=5)
+        country_entry = ctk.CTkEntry(self.left_frame)
         country_entry.insert(0, user_profile.country)
-        country_entry.pack()
+        country_entry.pack(padx=5, pady=5)
 
-        occupation_label = ctk.CTkLabel(self, text="Occupation:")
-        occupation_label.pack()
-        occupation_entry = ctk.CTkEntry(self)
+        occupation_label = ctk.CTkLabel(self.right_frame, text="Occupation:")
+        occupation_label.pack(padx=5, pady=5)
+        occupation_entry = ctk.CTkEntry(self.right_frame)
         occupation_entry.insert(0, user_profile.occupation)
-        occupation_entry.pack()
+        occupation_entry.pack(padx=5, pady=5)
 
-        description_label = ctk.CTkLabel(self, text="Description:")
-        description_label.pack()
-        description_entry = ctk.CTkTextbox(self, wrap="word")
+        description_label = ctk.CTkLabel(self.right_frame, text="Description:")
+        description_label.pack(padx=5, pady=5)
+        description_entry = ctk.CTkTextbox(self.right_frame, wrap="word")
         description_entry.insert('1.0', user_profile.description)
-        description_entry.pack()
+        description_entry.pack(padx=5, pady=5)
 
-        edit_profile_button = ctk.CTkButton(self, text="Commit changes", command=lambda: self.user_edit_profile_h(controller, password_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
-        edit_profile_button.pack(pady=10)
+        edit_profile_button = ctk.CTkButton(self.bottom_frame, text="Commit changes", command=lambda: self.user_edit_profile_h(controller, password_entry.get(), age_entry.get(), gender_entry.get(), country_entry.get(), occupation_entry.get(), description_entry.get("1.0", "end-1c")))
+        edit_profile_button.pack(padx=5, pady=10)
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
-        go_back_button.pack(pady=10)
+        go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
+        go_back_button.pack(padx=5, pady=10)
     
     def user_edit_profile_h(self, controller, password, age: str, gender, country, occupation, description):
         global user_profile
@@ -930,40 +1008,77 @@ class ViewProfile(ctk.CTkFrame):
                 #messagebox.showwarning("Warning", "This account was deleted")
                 user_data = classes.User("[DELETED]", "", "", "", "", "", "", "", "")
         
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
+        
         if user_data.username != "[DELETED]":
-            name_label = ctk.CTkLabel(self, text=f"The info page of \"{user_data.username}\"")
-            name_label.pack(pady=2)
-
-            email_label = ctk.CTkLabel(self, text=f"Email: {user_data.mail}")
-            email_label.pack()
             
-            age_label = ctk.CTkLabel(self, text=f"Age: {user_data.age}")
-            age_label.pack()
-
-            gender_label = ctk.CTkLabel(self, text=f"Gender: {user_data.gender}")
-            gender_label.pack()
-
-            country_label = ctk.CTkLabel(self, text=f"Country: {user_data.country}")
-            country_label.pack()
-
-            occupation_label = ctk.CTkLabel(self, text=f"Occupation: {user_data.occupation}")
-            occupation_label.pack()
+            self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+            self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
             
-            member_since_label = ctk.CTkLabel(self, text=f"Member Since: {user_data.date_creation}")
-            member_since_label.pack()
+            # Left Frame
+            self.left_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+            self.left_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
 
-            description_label = ctk.CTkLabel(self, text=f"Description: {user_data.description}")
-            description_label.pack()
+            # Right Frame
+            self.right_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+            self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
+                
+            name_label = ctk.CTkLabel(self.top_frame, text=f"The info page of \"{user_data.username}\"", font=("Helvetica", 32))
+            name_label.pack(padx=10, pady=5)
+
+            email_label = ctk.CTkLabel(self.left_frame, text=f"Email:\n{user_data.mail}", font=("Helvetica", 24), )
+            email_label.pack(padx=5, pady=5)
+            
+            self.seperate_label1 = ctk.CTkLabel(self.left_frame, text="_____")
+            self.seperate_label1.pack(padx=5, pady=5)
+            
+            age_label = ctk.CTkLabel(self.left_frame, text=f"Age:\n{user_data.age}", font=("Helvetica", 24))
+            age_label.pack(padx=5, pady=5)
+            
+            self.seperate_label2 = ctk.CTkLabel(self.left_frame, text="_____")
+            self.seperate_label2.pack(padx=5, pady=5)
+
+            gender_label = ctk.CTkLabel(self.left_frame, text=f"Gender:\n{user_data.gender}", font=("Helvetica", 24))
+            gender_label.pack(padx=5, pady=5)
+            
+            self.seperate_label3 = ctk.CTkLabel(self.left_frame, text="_____")
+            self.seperate_label3.pack(padx=5, pady=5)
+
+            country_label = ctk.CTkLabel(self.left_frame, text=f"Country:\n{user_data.country}", font=("Helvetica", 24))
+            country_label.pack(padx=5, pady=5)
+
+            occupation_label = ctk.CTkLabel(self.right_frame, text=f"Occupation:\n{user_data.occupation}", font=("Helvetica", 24))
+            occupation_label.pack(padx=5, pady=5)
+            
+            self.seperate_label4 = ctk.CTkLabel(self.right_frame, text="_____")
+            self.seperate_label4.pack(padx=5, pady=5)
+            
+            member_since_label = ctk.CTkLabel(self.right_frame, text=f"Member Since:\n{user_data.date_creation}", font=("Helvetica", 24))
+            member_since_label.pack(padx=5, pady=5)
+            
+            self.seperate_label5 = ctk.CTkLabel(self.right_frame, text="_____")
+            self.seperate_label5.pack(padx=5, pady=5)
+
+            self.description_label = ctk.CTkTextbox(self.right_frame, wrap="word")
+            self.description_label.tag_config("center", justify="center")
+            self.description_label.insert("1.0", user_data.description, "center")
+            self.description_label.configure(spacing1=20)
+            self.description_label.configure(state=ctk.DISABLED)
+            self.description_label.pack(padx=5, pady=5)
+
+            #description_label = ctk.CTkLabel(self.right_frame, text=f"Description:\n{user_data.description}", font=("Helvetica", 24))
+            #description_label.pack(padx=5, pady=5)
             
             if profile_username == user_profile.username:
-                delete_user_button = ctk.CTkButton(self, text="Delete user", command= self.delete_user)
+                delete_user_button = ctk.CTkButton(self.bottom_frame, text="Delete user", command= self.delete_user)
                 delete_user_button.pack(pady=10)
         else:
-            info_label = ctk.CTkLabel(self, text=f"This account exists no longer!")
-            info_label.pack()
+            info_label = ctk.CTkLabel(self, text=f"This account exists no longer!", font=("Helvetica", 32))
+            info_label.pack(padx=5, pady=5)
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: self.go_back_h())
-        go_back_button.pack(pady=10)
+        go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to main screen", command=lambda: self.go_back_h())
+        go_back_button.pack(padx=10, pady=10)
     
     def get_other_user_data(self):
         data = send_and_recieve(f"GETUSR|{self.profile_username}")
@@ -991,41 +1106,48 @@ class ViewProfile(ctk.CTkFrame):
                 if data[1] == "done":
                     # disconnect from the account
                     self.controller.reset_saved_frames()
-            
-        
 
 class CreateNewConversation(ctk.CTkFrame):
     def __init__(self, parent, controller):
         global user_profile
         super().__init__(parent)
         
-        frame_title_label = ctk.CTkLabel(self, text="Create a new conversation:")
-        frame_title_label.pack(pady=4)
+        self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.bottom_frame.pack(side=ctk.BOTTOM, padx=10, pady=10)
         
+        self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
         
-        conversation_title_label = ctk.CTkLabel(self, text="Title of the conversation:")
-        conversation_title_label.pack()
-        conversation_title_entry = ctk.CTkEntry(self)
-        conversation_title_entry.pack()
+        # Left Frame
+        self.big_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
+        self.big_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=8)
         
-        message_content_label = ctk.CTkLabel(self, text="Message content:")
-        message_content_label.pack()
-        message_content_entry = ctk.CTkTextbox(self, wrap="word")
-        message_content_entry.pack()
+        frame_title_label = ctk.CTkLabel(self.top_frame, text="Create a new conversation", font=("Helvetica", 32))
+        frame_title_label.pack(padx=5, pady=5)
         
-        restriction_label = ctk.CTkLabel(self, text="Restrict access:")
-        restriction_label.pack()
+        conversation_title_label = ctk.CTkLabel(self.big_frame, text="Title of the conversation:")
+        conversation_title_label.pack(padx=5, pady=5)
+        conversation_title_entry = ctk.CTkEntry(self.big_frame)
+        conversation_title_entry.pack(padx=5, pady=5)
+        
+        message_content_label = ctk.CTkLabel(self.big_frame, text="Message content:")
+        message_content_label.pack(padx=5, pady=5)
+        message_content_entry = ctk.CTkTextbox(self.big_frame, wrap="word")
+        message_content_entry.pack(padx=5, pady=5)
+        
+        restriction_label = ctk.CTkLabel(self.big_frame, text="Restrict access:")
+        restriction_label.pack(padx=5, pady=5)
         radio_var = ctk.StringVar()
-        restriction_radiobutton1 = ctk.CTkRadioButton(master=self, text="18+", variable= radio_var, value="18+")
-        restriction_radiobutton2 = ctk.CTkRadioButton(master=self, text="Unrestricted", variable= radio_var, value="unrestricted")
-        restriction_radiobutton1.pack(padx=20, pady=10)
-        restriction_radiobutton2.pack(padx=20, pady=10)
+        restriction_radiobutton1 = ctk.CTkRadioButton(master=self.big_frame, text="18+", variable= radio_var, value="18+")
+        restriction_radiobutton2 = ctk.CTkRadioButton(master=self.big_frame, text="Unrestricted", variable= radio_var, value="unrestricted")
+        restriction_radiobutton1.pack(padx=10, pady=2)
+        restriction_radiobutton2.pack(padx=10, pady=2)
         
-        add_conversation_button = ctk.CTkButton(self, text="Create conversation", command=lambda: self.add_conversation(controller, conversation_title_entry.get(), message_content_entry.get("1.0", "end-1c"), radio_var.get()))
-        add_conversation_button.pack(pady=10)
+        add_conversation_button = ctk.CTkButton(self.bottom_frame, text="Create conversation", command=lambda: self.add_conversation(controller, conversation_title_entry.get(), message_content_entry.get("1.0", "end-1c"), radio_var.get()))
+        add_conversation_button.pack(padx=10, pady=5)
         
-        go_back_button = ctk.CTkButton(self, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
-        go_back_button.pack(pady=10)
+        go_back_button = ctk.CTkButton(self.bottom_frame, text="Return to main screen", command=lambda: controller.show_page(HomePage_Connected))
+        go_back_button.pack(padx=10, pady=5)
     
     def add_conversation(self, controller, conversation_title, message_content, restriction_status):
         current_date = datetime.datetime.now()
@@ -1075,15 +1197,18 @@ class ConversationGUI(ctk.CTkFrame):
         
         ####        
         
+        self.voice_frame = ctk.CTkFrame(self, fg_color="white", border_color="black", border_width=2)
+        self.voice_frame.pack(side=ctk.RIGHT, padx=5, pady=2)
+        
         mute_icon_image = Image.open(fp=os.path.join("assets","mute icon 1.png"))
         self.mute_icon = ctk.CTkImage(light_image=mute_icon_image, size=(30, 30))
-        self.mute_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.mute_icon, command=stop_speech)
-        self.mute_button.pack(side=ctk.RIGHT, padx=5)
+        self.mute_button = ctk.CTkButton(self.voice_frame, width=50, fg_color="white", text="", image=self.mute_icon, command=stop_speech)
+        self.mute_button.pack(side=ctk.BOTTOM, padx=5, pady=3)
         
         speaker_icon_image = Image.open(fp=os.path.join("assets","speaker icon 1.png"))
         self.speaker_icon = ctk.CTkImage(light_image=speaker_icon_image, size=(30, 30))
-        self.speech_text_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(title,)).start())
-        self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
+        self.speech_text_button = ctk.CTkButton(self.voice_frame, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(title,)).start())
+        self.speech_text_button.pack(side=ctk.TOP, padx=5, pady=3)
         
         ####
         self.title_button = ctk.CTkButton(self, text=title, fg_color="white", text_color="black", hover_color="cyan", command= self.enter_conversation)
@@ -1106,13 +1231,16 @@ class ConversationGUI(ctk.CTkFrame):
             self.pins = data[2]
             self.current_pin_status = data[1]
             
+            self.pins_frame = ctk.CTkFrame(self, fg_color="white", border_color="black", border_width=2)
+            self.pins_frame.pack(side=ctk.RIGHT, padx=5, pady=2)
+            
             pin_image = Image.open(fp=os.path.join("assets","pin icon 2.png"))
             self.pin_icon = ctk.CTkImage(light_image=pin_image, size=(30, 30))
-            self.pin_button = ctk.CTkButton(self, width=50, text="", image=self.pin_icon, command=self.pin_action)
-            self.pin_button.pack(side=ctk.RIGHT, padx=10)
+            self.pin_button = ctk.CTkButton(self.pins_frame, width=50, text="", image=self.pin_icon, command=self.pin_action)
+            self.pin_button.pack(side=ctk.TOP, padx=5, pady=3)
             
-            self.pins_label = ctk.CTkLabel(self, text=self.pins)
-            self.pins_label.pack(side=ctk.RIGHT, padx=10)
+            self.pins_label = ctk.CTkLabel(self.pins_frame, text=self.pins)
+            self.pins_label.pack(side=ctk.BOTTOM, padx=5, pady=3)
             
             if self.current_pin_status == "pinned":
                 self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
@@ -1162,11 +1290,7 @@ class ConversationGUI(ctk.CTkFrame):
     def re_pack(self):
         self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
-
-            
         
-    
-
 class HandleConversations:
     # maybe the mainscreens will get an instance of this class
     def __init__(self, frame_area, controller, class_return_to, amount=5, search_active=False) -> None:
@@ -1287,7 +1411,7 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.title = title
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
-        self.title_label = ctk.CTkLabel(self.top_bar, text=f"{self.title}", fg_color="purple", bg_color="purple", text_color="white")
+        self.title_label = ctk.CTkLabel(self.top_bar, text=f"{self.title}", fg_color="purple", bg_color="purple", text_color="white", font=("Helvetica", 24))
         self.title_label.pack(padx=12, pady=1.25)
 
         # Sidebar with topics
@@ -1307,7 +1431,6 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         self.post_message_button = ctk.CTkButton(self.bottom_bar, fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", text="Post", command=lambda: self.post_message(self.message_content_entry.get("1.0", "end-1c")))
         self.post_message_button.pack(padx=5, pady=2, side=ctk.RIGHT, fill=ctk.Y)
-        # Add messages here
         # Main content area with messages
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
@@ -1347,9 +1470,6 @@ class InsideConversationGUI(ctk.CTkFrame):
             if data[1] == "new_message_added":
 
                 messagebox.showinfo("Info", "added new message")        
-
-
-
 
 class HandleMessages:
     # maybe the mainscreens will get an instance of this class
@@ -1405,19 +1525,18 @@ class HandleMessages:
         self.messages_lst = [message for message in self.messages_lst if message.id != id_message]
         print()
            
-
-
 class MessageGUI(ctk.CTkFrame):
     def __init__(self, parent, controller, content, date, username, conversation_title, id, the_handler):
         super().__init__(parent, height=100, fg_color="white", corner_radius=50, border_color="black", border_width=2)  # Increase border_width
-        #self.pack_propagate(False)
         self.pack(fill=ctk.X, padx=4, pady=2)
         
         self.id = id
         self.the_handler = the_handler
         
-        #self.user_label = ctk.CTkLabel(self, text=username)
-        #self.user_label.pack(side=ctk.LEFT, padx=10)
+        # this frame will know its place, but will not be shown. shown only if its the user, later in the function.
+        self.del_edit_frame = ctk.CTkFrame(self, fg_color="white", width=0, height=0)
+        self.del_edit_frame.pack(side=ctk.BOTTOM, padx=5, pady=5)
+        
         self.user_button = ctk.CTkButton(self, text=username, fg_color="white", text_color="black", hover_color="cyan", command= lambda: controller.show_page(ViewProfile, profile_username=username, class_return_to=InsideConversationGUI, edited_profile=False))
         self.user_button.pack(side=ctk.LEFT, padx=10)
         
@@ -1428,15 +1547,19 @@ class MessageGUI(ctk.CTkFrame):
         self.set_voting()
         
         ####
+        
+        self.voice_frame = ctk.CTkFrame(self, fg_color="white", border_color="black", border_width=2)
+        self.voice_frame.pack(side=ctk.RIGHT, padx=5, pady=2)
+        
         mute_icon_image = Image.open(fp=os.path.join("assets","mute icon 1.png"))
         self.mute_icon = ctk.CTkImage(light_image=mute_icon_image, size=(30, 30))
-        self.mute_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.mute_icon, command=stop_speech)
-        self.mute_button.pack(side=ctk.RIGHT, padx=5)
+        self.mute_button = ctk.CTkButton(self.voice_frame, width=50, fg_color="white", text="", image=self.mute_icon, command=stop_speech)
+        self.mute_button.pack(side=ctk.BOTTOM, padx=5, pady=3)
         
         speaker_icon_image = Image.open(fp=os.path.join("assets","speaker icon 1.png"))
         self.speaker_icon = ctk.CTkImage(light_image=speaker_icon_image, size=(30, 30))
-        self.speech_text_button = ctk.CTkButton(self, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(content,)).start())
-        self.speech_text_button.pack(side=ctk.RIGHT, padx=5)
+        self.speech_text_button = ctk.CTkButton(self.voice_frame, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(content,)).start())
+        self.speech_text_button.pack(side=ctk.TOP, padx=5, pady=3)
         ####
         #self.content_label = ctk.CTkLabel(self, text=content)
         #self.content_label.pack(side=ctk.LEFT)
@@ -1458,23 +1581,25 @@ class MessageGUI(ctk.CTkFrame):
             self.speech_text_button.configure(fg_color="#BEDBED")
             self.content_label.configure(fg_color="#ADD8E6")
             self.votes_frame.configure(fg_color="#BEDBED")
+            self.del_edit_frame.configure(fg_color="#BEDBED")
+            self.voice_frame.configure(fg_color="#BEDBED")
             
-            self.change_frame = ctk.CTkFrame(self, fg_color="#ADD8E6", border_color="black", border_width=2)
-            self.change_frame.pack(side=ctk.BOTTOM, pady=5)
+            #self.change_frame = ctk.CTkFrame(self, fg_color="#ADD8E6", border_color="black", border_width=2)
+            #self.change_frame.pack(side=ctk.BOTTOM, pady=5)
             
             delete_image = Image.open(fp=os.path.join("assets","delete icon 1.png"))
             self.delete_icon = ctk.CTkImage(light_image=delete_image, size=(30, 30))
-            self.delete_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.delete_icon, command=self.delete_message)
+            self.delete_button = ctk.CTkButton(self.del_edit_frame, width=50, text="", image=self.delete_icon, command=self.delete_message)
             self.delete_button.pack(side=ctk.RIGHT, pady=3)
             
             edit_image = Image.open(fp=os.path.join("assets","edit icon 1.png"))
             self.edit_icon = ctk.CTkImage(light_image=edit_image, size=(30, 30))
-            self.edit_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.edit_icon, command=self.edit_message)
+            self.edit_button = ctk.CTkButton(self.del_edit_frame, width=50, text="", image=self.edit_icon, command=self.edit_message)
             self.edit_button.pack(side=ctk.RIGHT, pady=3)
             
             confirm_image = Image.open(fp=os.path.join("assets","confirm icon 1.png"))
             self.confirm_icon = ctk.CTkImage(light_image=confirm_image, size=(30, 30))
-            self.confirm_button = ctk.CTkButton(self.change_frame, width=50, text="", image=self.confirm_icon, command=self.confirm_edit)
+            self.confirm_button = ctk.CTkButton(self.del_edit_frame, width=50, text="", image=self.confirm_icon, command=self.confirm_edit)
 
             #self.delete_button = 
             
@@ -1605,7 +1730,7 @@ class FailedToload(ctk.CTk):
         self.top_frame.pack(side=ctk.TOP, fill=ctk.X, expand=True, padx=20, pady=10)
 
         # Logo
-        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))  # Replace with your logo path
+        logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))
         self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(400, 246))
         self.logo_label = ctk.CTkLabel(self.top_frame, image=self.logo_icon, text="")
         self.logo_label.pack(pady=5)
@@ -1617,7 +1742,7 @@ class FailedToload(ctk.CTk):
         self.center_frame.pack(side=ctk.BOTTOM, fill=ctk.BOTH, expand=True, padx=20, pady=20)
 
         # Chat icon
-        failed_icon_image = Image.open(os.path.join("assets","failed icon 1.png"))  # Replace with your icon path
+        failed_icon_image = Image.open(os.path.join("assets","failed icon 1.png"))  
         self.failed_icon = ctk.CTkImage(light_image=failed_icon_image, size=(100, 100))
         self.failed_icon_label = ctk.CTkLabel(self.center_frame, image=self.failed_icon, text="")
         self.failed_icon_label.pack(pady=5)
