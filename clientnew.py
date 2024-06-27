@@ -1232,7 +1232,7 @@ class HandleConversations:
                 for convdata in data[1:]:
                     conv_splt = convdata.split('_')
                     conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
-        
+                conversations = list(reversed(conversations))
                 self.draw_conversations(conversations)
         return conversations
 
