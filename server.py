@@ -102,24 +102,8 @@ class TCPServer:
                 command = data_split[0]
                 fields = data_split[1:]
                 
-                #if command == "REGUSR":
-                #    register_status = users_db.registeration_checks(fields[0], fields[2])
-                #    
-                #    if not register_status:
-                #        salt = hash_handler.gen_salt()
-                #        pepper = hash_handler.get_global_pepper()
-                #        password = hash_handler.hash_password(pepper + salt + fields[1])
-                #        user = classes.User(fields[0], password, fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8]) # fields[7] should be datetime that I ran when the user sent the information (date_creation) and not an input of the user
-                #        users_db.insert_user(user, salt)
-                #        to_send = f"REGUSR|new_user"
-                #    else:
-                #        if register_status[0] == "name_mail_issue":
-                #            to_send = f"REGUSR|name_mail_taken"
-                #        elif register_status[0] == "name_issue":
-                #            to_send = f"REGUSR|name_taken"
-                #        elif register_status[0] == "mail_issue":
-                #            to_send = f"REGUSR|mail_taken"
                 if command == "REGUSR":
+                    # register user
                     
                     salt = hash_handler.gen_salt()
                     pepper = hash_handler.get_global_pepper()
@@ -134,6 +118,8 @@ class TCPServer:
                     elif register_status == "name_issue":
                         to_send = f"REGUSR|name_taken"
                 elif command == "LOGUSR":
+                    # log in / login user
+                    
                     user_data = users_db.enter_account(fields[0], fields[1], fields[2])
 
                     if user_data:
@@ -144,24 +130,6 @@ class TCPServer:
                     user = classes.User(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7], fields[8])
                     users_db.edit_user_data(user)
                     to_send = "EDTUSR|edited_profile"
-                #elif command == "NEWCNV":
-                #    # create a new conversation including the first message within it
-                #    
-                #    # {conversation_title}|{message_content}|{restriction_status}|{creation_date}|{user_profile.username}
-                #    
-                #    conversation_status = conversations_db.conversation_checks(fields[0])
-                #    if not conversation_status:
-                #        conversation = classes.ConversationStruct(fields[0], fields[4], fields[3], fields[2])
-                #        conversations_db.insert_conversation(conversation)
-                #        # there can't be two titles with the same name!!
-                #        
-                #        message = classes.MessageStruct(fields[1], fields[3], fields[4], fields[0])
-                #        messages_db.insert_message(message)
-                #        
-                #        to_send = "NEWCNV|new_conversation_added"
-                #    else:
-                #        if conversation_status[0] == "title_exists":
-                #            to_send = "NEWCNV|title_issue"
                 
                 elif command == "NEWCNV":
                     # create a new conversation including the first message within it
@@ -180,6 +148,8 @@ class TCPServer:
                         to_send = "NEWCNV|title_issue"
 
                 elif command == "MORCNV":
+                    # get more conversations (new unseen conversations)
+                    
                     # if current client already exists in the dictionary then he has already recieved messages
                     if client_socket in self.clients_conversations.keys():
                         # get the list of all titles the user has received so far
@@ -207,6 +177,7 @@ class TCPServer:
                         pass
                 
                 elif command == "FSTCNV":
+                    # get the first conversations to show the user
                     last_conversations = conversations_db.get_last_conversations(int(fields[0]))
                     if last_conversations == []:
                         to_send = "FSTCNV|no_conversations"
@@ -222,12 +193,14 @@ class TCPServer:
                     self.clients_conversations[client_socket] = self.apart_titles_from_lst(last_conversations)
                 
                 elif command == "NEWMSG":
+                    # send a new message inside a conversation
                     message = classes.MessageStruct(fields[0], fields[1], fields[2], fields[3])
                     messages_db.insert_message(message)
                 
                     to_send = "NEWMSG|new_message_added"
                 
                 elif command == "FSTMSG":
+                    # get the first messages inside a conversation to show the user
                     first_messages = messages_db.get_first_messages(fields[1], int(fields[0]))
                     if first_messages == []:
                         to_send = "FSTMSG|no_messages"
@@ -243,6 +216,7 @@ class TCPServer:
                     #self.clients_conversations[client_socket] = self.apart_titles_from_lst(first_messages)
                 
                 elif command == "MORMSG":
+                    # get more messages inside a conversation to show the user
                     new_first_messages = messages_db.get_first_new_messages(fields[1], fields[2], int(fields[0]))
                     
                     print(f"message id is: {fields[2]}")
@@ -259,6 +233,7 @@ class TCPServer:
                                 to_send += f"{msg[0]}_{msg[1]}_{msg[2]}_{msg[3]}_{msg[4]}|"
                 
                 elif command == "GETUSR":
+                    # get a user's data
                     data_users = users_db.get_data_from_username(fields[0])
                     if len(data_users) == 0:
                         to_send = "GETUSR|no_user"
@@ -269,6 +244,7 @@ class TCPServer:
                         else:
                             to_send = "GETUSR|user_deleted"
                 elif command == "SRCCNV":
+                    # search for conversation and inside them for a text
                     search_in_convs = conversations_db.search_for(fields[0])
                     search_in_msgs = messages_db.search_for(fields[0])
                     
@@ -291,6 +267,7 @@ class TCPServer:
                                 to_send += f"{conv[1]}_{conv[2]}_{conv[3]}_{conv[4]}|"
                 
                 elif command == "VOTMSG":
+                    # user vote on a message
                     vote = fields[0]
                     username = fields[1]
                     message_id = fields[2]
@@ -342,6 +319,7 @@ class TCPServer:
                                 to_send = f"VOTMSG|downvote|{vote_number}"
                                 
                 elif command == "GEVMSG":
+                    # get all users votes on a message
                     username = fields[0]
                     message_id = fields[1]
                     vote_status = messages_votes_db.already_voted(username, message_id)
@@ -358,6 +336,7 @@ class TCPServer:
                             to_send = f"GEVMSG|no_vote|{vote_number}"
                     
                 elif command == "PINCNV":
+                    # user pin on a conversation
                     username = fields[0]
                     conversation_title = fields[1]
                     
@@ -380,6 +359,7 @@ class TCPServer:
                             to_send = f"PINCNV|pinned|{pin_number}"
                 
                 elif command == "GEPCNV":
+                    # get all users pins on a conversation
                     username = fields[0]
                     conversation_title = fields[1]
                     pin_status = conversations_pins_db.already_pinned(username, conversation_title)
@@ -394,6 +374,7 @@ class TCPServer:
                             to_send = f"GEPCNV|no_pin|{pin_number}"
                 
                 elif command == "GUPCNV":
+                    # get all conversations that one specific user pinned
                     username = fields[0]
                     user_pinned_convs = conversations_pins_db.get_specific_user_pins(username)
                     
@@ -409,6 +390,7 @@ class TCPServer:
                                 to_send += f"{pinned_convs[0]}|"
                 
                 elif command == "NPSUSR":
+                    # user got a new password from forgot password
                     email = fields[0]
                     new_password = fields[1]
                     
@@ -416,6 +398,7 @@ class TCPServer:
                     to_send = "NPSUSR|password_updated"
                 
                 elif command == "DELMSG":
+                    # delete a meesage
                     id = fields[0]
                     
                     messages_db.delete_message(id)
@@ -423,6 +406,7 @@ class TCPServer:
                     to_send = "DELMSG|success"
                 
                 elif command == "EDTMSG":
+                    # edit a message
                     id = fields[0]
                     content = fields[1]
                     messages_db.update_content(id, content)
@@ -430,31 +414,21 @@ class TCPServer:
                     to_send = "EDTMSG|success"
                 
                 elif command == "DELUSR":
+                    # delete a user and things related to him
                     username = fields[0]
                     users_db.delete_user(username)
                     messages_db.delete_user_messages(username)
                     conversations_db.change_to_deleted(username)
                     
                     to_send = "DELUSR|done"
-
-
-                    
-                                
-                        
-                    
-                    
-
-                    
-                    
-                
-
-                
                 
                 send_with_size(client_socket, handle_encryption.cipher_data(to_send))
         except Exception as e:
             print(f"Error: {e}")
         finally:
+            # Remove client from the list and from the dictionary saving the conversation he has received, then close the connection with him.
             self.clients.remove(client_socket)
+            self.clients_conversations.pop(client_socket, "not_in_here")
             client_socket.close()
 
     def apart_titles_from_lst(self, conversation_lst):

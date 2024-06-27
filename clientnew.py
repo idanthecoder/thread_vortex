@@ -4,7 +4,6 @@ import socket
 import threading
 from tcp_by_size import send_with_size, recv_by_size
 import email_handler
-import time
 import customtkinter as ctk
 import os
 from PIL import ImageTk, Image
@@ -77,6 +76,7 @@ class App(ctk.CTk):
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
+        # dictionary to save specific frames that should retain their status {class:frame}
         self.saved_frames = {}
         self.frame = OpeningScreen(self.container, self)
         self.saved_frames[OpeningScreen] = self.frame
@@ -99,12 +99,6 @@ class App(ctk.CTk):
                 callback=function (def)
         """
         
-        ## not sure about this change, but it fixes a bug of exiting and returning to the same conversation
-        #if class_to_show == InsideConversationGUI:
-        #    self.frame = class_to_show(self.container, self, kwargs.pop("title"))
-        #    self.frame.grid(row=0, column=0, sticky="nsew")
-        #    return
-        
         # if the requested class is already saved in the dictinary I want to use it in the state it was last left in
         if class_to_show in self.saved_frames.keys():
             # if this parameter is in kwargs then this relates to the InsideConversationGUI class
@@ -118,34 +112,13 @@ class App(ctk.CTk):
                     self.frame.grid(row=0, column=0, sticky="nsew")
                     return
             
-            ## if those parameters are in kwargs then this relates to the ViewProfile class
-            #if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
-            #    profile_username = kwargs.pop("profile_username")
-            #    class_return_to = kwargs.pop("class_return_to")
-            #    edited_profile = kwargs.pop("edited_profile")
-            #    
-            #    # if at least one of the values is new then reset the value for this class and grid it
-            #    if profile_username != self.saved_frames[class_to_show].profile_username or class_return_to != self.saved_frames[class_to_show].class_return_to or edited_profile != self.saved_frames[class_to_show].edited_profile:
-            #        self.frame = class_to_show(self.container, self, profile_username, class_return_to, edited_profile)
-            #        self.saved_frames[class_to_show] = self.frame
-            #        self.frame.grid(row=0, column=0, sticky="nsew")
-            #        return"""
-            #elif "str_to_search" in kwargs:
-            #    str_to_search = kwargs.pop("str_to_search")
-            #    if str_to_search != self.saved_frames[class_to_show].str_to_search:
-            #        self.frame = class_to_show(self.container, self, str_to_search)
-            #        self.saved_frames[class_to_show] = self.frame
-            #        self.frame.grid(row=0, column=0, sticky="nsew")
-            #        return
-            
             # if no kwargs are given or if their values are the same then user tkraise to switch frames
             self.frame = self.saved_frames[class_to_show]
             self.frame.tkraise()
             if class_to_show == InsideConversationGUI:
+                # inside the conversation will keep looking for new conversations this way
                 self.frame.check_continuously.set(value=True)
                 self.frame.repeat_request()
-            #elif class_to_show == HomePage_Connected:
-            #    self.frame.reload_screen()
         else:
             # if it is a totally new class then create an instance of it and grid it
             if "profile_username" in kwargs and "class_return_to" in kwargs and "edited_profile" in kwargs:
@@ -161,6 +134,7 @@ class App(ctk.CTk):
             else:
                 self.frame = class_to_show(self.container, self)
             
+            # frames which I wish never to save their status
             if class_to_show != SearchPage and class_to_show != EnterVerificationCode and class_to_show != ChoosePassword and class_to_show != ViewProfile:
                 self.saved_frames[class_to_show] = self.frame
             self.frame.grid(row=0, column=0, sticky="nsew")
@@ -177,6 +151,9 @@ class App(ctk.CTk):
             how_to_change = kwargs.pop("how_to_change")
         if "class_return_to" in kwargs:
             class_return_to = kwargs.pop("class_return_to")
+        
+        # this function is related to the pinned conversations combobox. when a conversation is pinned/unpinned it updates the combobox
+        # additionaly if the change is done in the search frame it will make sure that the change also happends in the homepage
         
         if how_to_change == "add":
             self.saved_frames[HomePage_Connected].add_pinned_conversation(conversation_title)
@@ -351,12 +328,6 @@ class RegisterPage(ctk.CTkFrame):
         
         self.verification(mail)
         
-        
-        #current_date = datetime.datetime.now()
-        #date_creation = f"{current_date.day}/{current_date.month}/{current_date.year} {str(current_date.hour).zfill(2)}:{str(current_date.minute).zfill(2)}"
-        #
-        #user_profile = classes.User(username, password, mail, age, gender, country, occupation, date_creation, description)
-        #self.user_register(user_profile)
     
     def user_register(self, user_profile: classes.User):
         data = send_and_recieve(f"REGUSR|{user_profile.username}|{user_profile.password}|{user_profile.mail}|{user_profile.age}|{user_profile.gender}|{user_profile.country}|{user_profile.occupation}|{user_profile.date_creation}|{user_profile.description}")
@@ -365,16 +336,12 @@ class RegisterPage(ctk.CTkFrame):
             if data[1] == "new_user":
                 self.controller.show_page(HomePage_Connected)
                 return
-            #elif data[1] == "name_mail_taken":
-            #    messagebox.showwarning("Warning", "Username and mail already in use")
             elif data[1] == "name_taken":
                 messagebox.showwarning("Warning", "Username already in use")
             elif data[1] == "mail_taken":
                 messagebox.showwarning("Warning", "Mail already in use")
             
             self.controller.show_page(RegisterPage)
-
-
     
     def verification(self, mail):
         self.controller.show_page(EnterVerificationCode, mail=mail, callback=self.after_verification, class_return_to=RegisterPage)
@@ -624,18 +591,6 @@ class ForgotPassword(ctk.CTkFrame):
     def choose_new_password(self):
         self.controller.show_page(ChoosePassword, mail=self.mail)
 
-    #def send_new_password_server(self, new_password):
-    #    send_with_size(client_socket, handle_encryption.cipher_data(f"NPSUSR|{self.mail}|{new_password}"))
-    #    data = handle_encryption.decipher_data(recv_by_size(client_socket)).split('|')
-    #    if len(data) <= 1:
-    #        return
-    #    
-    #    if data[0] == "NPSUSR":
-    #        if data[1] == "password_updated":
-    #            messagebox.showinfo("Info", "Password updated successfully")
-    #            self.controller.show_page(LoginPage)
-
-
 class ChoosePassword(ctk.CTkFrame):
     def __init__(self, parent, controller, mail):
         super().__init__(parent)
@@ -688,8 +643,6 @@ class ChoosePassword(ctk.CTkFrame):
             if data[1] == "password_updated":
                 messagebox.showinfo("Info", "Password updated successfully")
                 self.controller.show_page(LoginPage)
-        
-        
 
 class HomePage_Connected(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -702,9 +655,6 @@ class HomePage_Connected(ctk.CTkFrame):
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
         self.top_bar.pack(fill=ctk.X)
         
-        
-        #self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
-        #self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
         
         logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))
         self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(120, 73))
@@ -727,7 +677,7 @@ class HomePage_Connected(ctk.CTkFrame):
         self.view_profile_button = ctk.CTkButton(self.top_bar, width=100, border_color="black", border_width=3, text="", image=self.view_profile_icon, command=lambda: controller.show_page(ViewProfile, profile_username=user_profile.username, class_return_to=HomePage_Connected, edited_profile=False))
         self.view_profile_button.pack(side=ctk.RIGHT, padx=1.25, pady=1.25)
 
-        # Sidebar with topics
+        # sidebar
         self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
         self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
         
@@ -753,24 +703,17 @@ class HomePage_Connected(ctk.CTkFrame):
                                        command=self.reconfigure_conversations_screen,
                                        variable=optionmenu_var)
         self.reconfiguration_combobox.pack(side=ctk.TOP, padx=5, pady=5)
-        
-
-        
 
         # choose favorite conversations
         self.setup_favourites()
 
-        # Add messages here
-        # Main content area with messages
+        # main content area with conversation to click and get into
         self.content_area = ModifiedCTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
         self.conversation_handler = HandleConversations(self.content_area, controller, HomePage_Connected, 5)
         
         self.content_area.set_func(self.conversation_handler.request_more)
-        
-        #self.request_conversations_button = ctk.CTkButton(self.content_area, text="More Conversations", fg_color="white",  border_color="black", border_width=2, text_color="black", hover_color="cyan", command=lambda: self.conversation_handler.request_more(self.content_area, controller, 5))
-        #self.request_conversations_button.pack(side=ctk.BOTTOM)
     
     def search_h(self, to_search):
         if '|' in to_search or '_' in to_search:
@@ -791,11 +734,9 @@ class HomePage_Connected(ctk.CTkFrame):
         if choice == "":
             return
         
-        #if choice != "Sort By Popularity" and choice != "Sort By Popularity (Reverse)":
-        #    clear_frame(self.content_area)
-        #else:
         forget_frame_widgets(self.content_area)
         
+        # change the order shown on screen of the conversations
         self.conversation_handler.reconfigure_conversation_order(choice)
     
     def enter_pinned_conversation(self, choice):
@@ -837,10 +778,6 @@ class HomePage_Connected(ctk.CTkFrame):
         self.pinned_convs_titles.remove(conversation_title)
         self.pinned_combobox.configure(values=self.pinned_convs_titles)
     
-    #def reload_screen(self):
-    #    clear_frame(self.content_area)
-    #    self.conversation_handler.reload_conversations()
-    
 def clear_frame(frame):
     for widgets in frame.winfo_children():
         widgets.destroy()
@@ -859,8 +796,6 @@ class SearchPage(ctk.CTkFrame):
             self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
             self.top_bar.pack(fill=ctk.X)
             
-            #self.logo = ctk.CTkLabel(self.top_bar, text="ThreadVortex", fg_color="purple", bg_color="purple", text_color="white")
-            #self.logo.pack(side=ctk.LEFT, padx=12, pady=1.25)
             logo_icon_image = Image.open(os.path.join("assets","Thread Vortex logo.png"))
             self.logo_icon = ctk.CTkImage(light_image=logo_icon_image, size=(120, 73))
             self.logo_label = ctk.CTkLabel(self.top_bar, image=self.logo_icon, text="", fg_color="white", bg_color="purple")
@@ -999,13 +934,10 @@ class ViewProfile(ctk.CTkFrame):
         if profile_username == user_profile.username:
             user_data: classes.User = classes.User.clone(user_profile)
         else:
-            # i will deal with this later. in this case a will ask the server for the data of the user who has this username, the sever will take it from the database - send to client and it will be displayed.
             user_data = self.get_other_user_data()
             if user_data == "no_user":
-                #messagebox.showwarning("Warning", "No such user exists in the database")
                 user_data = classes.User("[DELETED]", "", "", "", "", "", "", "", "")
             elif user_data == "user_deleted":
-                #messagebox.showwarning("Warning", "This account was deleted")
                 user_data = classes.User("[DELETED]", "", "", "", "", "", "", "", "")
         
         self.bottom_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
@@ -1016,11 +948,9 @@ class ViewProfile(ctk.CTkFrame):
             self.top_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
             self.top_frame.pack(side=ctk.TOP, padx=10, pady=10)
             
-            # Left Frame
             self.left_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
             self.left_frame.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
 
-            # Right Frame
             self.right_frame = ctk.CTkFrame(self, border_color="black", border_width=2)
             self.right_frame.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=20, pady=10)
                 
@@ -1066,9 +996,6 @@ class ViewProfile(ctk.CTkFrame):
             self.description_label.configure(spacing1=20)
             self.description_label.configure(state=ctk.DISABLED)
             self.description_label.pack(padx=5, pady=5)
-
-            #description_label = ctk.CTkLabel(self.right_frame, text=f"Description:\n{user_data.description}", font=("Helvetica", 24))
-            #description_label.pack(padx=5, pady=5)
             
             if profile_username == user_profile.username:
                 delete_user_button = ctk.CTkButton(self.bottom_frame, text="Delete user", command= self.delete_user)
@@ -1172,7 +1099,6 @@ class CreateNewConversation(ctk.CTkFrame):
                 messagebox.showinfo("Info", "Created new conversation!")
                 controller.show_page(InsideConversationGUI, title=conversation_title, class_return_to=HomePage_Connected)
             elif data[1] == "title_issue":
-                #messagebox.showinfo("Info", "Created new conversation!")
                 messagebox.showwarning("Warning", "This conversation already exists")
    
 
@@ -1262,12 +1188,10 @@ class ConversationGUI(ctk.CTkFrame):
                 self.current_pin_status = "pinned"
                 
                 self.controller.change_pinned(self.title, how_to_change="add", class_return_to=self.class_return_to)
-                #self.controller.add_pinned_conversation(self.title, )
             elif data[1] == "no_pin":
                 self.current_pin_status = "no_pin"
                 
                 self.controller.change_pinned(self.title, how_to_change="remove", class_return_to=self.class_return_to)
-                #self.controllerremove_pinned_conversation(self.title)
     
     def change_pin_manually(self):
         data = send_and_recieve(f"GEPCNV|{user_profile.username}|{self.title}")
@@ -1277,13 +1201,9 @@ class ConversationGUI(ctk.CTkFrame):
             self.current_pin_status = data[1]
             
         if self.current_pin_status == "pinned":
-            #self.current_pin_status = "pinned"
-            #self.pins = str(int(self.pins)+1)
             self.pin_button.configure(fg_color="#FFD700", hover_color="#FFD300")
             self.pins_label.configure(text=self.pins)
         elif self.current_pin_status == "no_pin":
-            #self.current_pin_status = "no_pin"
-            #self.pins = str(int(self.pins)-1)
             self.pin_button.configure(fg_color="#3B8ED0", hover_color="#36719F")
             self.pins_label.configure(text=self.pins)
     
@@ -1292,7 +1212,6 @@ class ConversationGUI(ctk.CTkFrame):
         self.pack(fill=ctk.X, padx=4, pady=2)
         
 class HandleConversations:
-    # maybe the mainscreens will get an instance of this class
     def __init__(self, frame_area, controller, class_return_to, amount=5, search_active=False) -> None:
         self.frame_area = frame_area
         self.controller = controller
@@ -1339,48 +1258,29 @@ class HandleConversations:
     def reconfigure_conversation_order(self, order_by):
         #self.conversations_lst
         if order_by == "Sort Alphabetically":
-            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title)
             self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].title))}
         elif order_by == "Sort Alphabetically (Reverse)":
-            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conv: conv.title, reverse=True)
             self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].title), reverse=True)}
         elif order_by == "Sort Chronologically":
-            #self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date)
             self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (self.sort_by_creation_date(item[1].date)))}
         elif order_by == "Sort Chronologically (Reverse)":
-            #self.conversations_lst = sorted(self.conversations_lst, key=self.sort_by_creation_date, reverse=True)
             self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (self.sort_by_creation_date(item[1].date)), reverse=True)}
         elif order_by == "Sort By Popularity":
-            #sorted_convgui_dict = dict(sorted(self.convgui_dict.items(), key=lambda item: item[1].pins))
-            #self.conversations_lst = 
-            #for title in sorted_convgui_dict.keys():
             # Sort the dictionary by 'pins' attribute
-            # for some reason for normal order reverse is needed
+            # for normal order reverse is needed because of the mechanism this lambda follows
             self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins), reverse=True)}
-
-            # Sort the list based on the order of keys in the sorted dictionary
-            
-            # for some reason for normal order reverse is needed
-            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins), reverse=True)
                 
         elif order_by == "Sort By Popularity (Reverse)":
-            #sorted_convgui_dict = dict(sorted(self.convgui_dict.items(), key=lambda item: item[1].pins, reverse=True))
-            #self.conversations_lst = 
+            # Sort the dictionary by 'pins' attribute
+            # for normal order reverse is needed because of the mechanism this lambda follows
             self.convgui_dict = {key: value for key, value in sorted(self.convgui_dict.items(), key=lambda item: (item[1].pins))}
 
-            # Sort the list based on the order of keys in the sorted dictionary
-            #self.conversations_lst = sorted(self.conversations_lst, key=lambda conversation: (sorted_dict[conversation.title].pins))
-
-        #if order_by != "Sort By Popularity" and order_by != "Sort By Popularity (Reverse)":
-        #    self.draw_conversations(self.conversations_lst)
-        #else:
         self.draw_dict()
     
     def draw_dict(self):
         for item in self.convgui_dict.items():
             item[1].re_pack()
             
-    
     def sort_by_creation_date(self, date):
         creation_date = datetime.datetime.strptime(date, "%d/%m/%Y %H:%M")
         return creation_date
@@ -1396,17 +1296,13 @@ class HandleConversations:
                     self.search_conversations_lst.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                     found_conversations.append(classes.ConversationStruct(conv_splt[0], conv_splt[1], conv_splt[2], conv_splt[3]))
                 self.draw_conversations(found_conversations)
-    
-    #def reload_conversations(self):
-    #    self.draw_conversations(self.conversations_lst)
-
 
 class InsideConversationGUI(ctk.CTkFrame):
     def __init__(self, parent, controller, title, class_return_to):
         global user_profile
         super().__init__(parent)
         self.class_return_to = class_return_to
-        # Top bar
+
         self.controller = controller
         self.title = title
         self.top_bar = ctk.CTkFrame(self, fg_color="purple", bg_color="purple")
@@ -1414,7 +1310,6 @@ class InsideConversationGUI(ctk.CTkFrame):
         self.title_label = ctk.CTkLabel(self.top_bar, text=f"{self.title}", fg_color="purple", bg_color="purple", text_color="white", font=("Helvetica", 24))
         self.title_label.pack(padx=12, pady=1.25)
 
-        # Sidebar with topics
         self.sidebar = ctk.CTkFrame(self, bg_color="purple", fg_color="purple")
         self.sidebar.pack(side=ctk.LEFT, fill=ctk.Y)
         
@@ -1431,7 +1326,8 @@ class InsideConversationGUI(ctk.CTkFrame):
         
         self.post_message_button = ctk.CTkButton(self.bottom_bar, fg_color="white", border_color="black", border_width=2, text_color="black", hover_color="cyan", text="Post", command=lambda: self.post_message(self.message_content_entry.get("1.0", "end-1c")))
         self.post_message_button.pack(padx=5, pady=2, side=ctk.RIGHT, fill=ctk.Y)
-        # Main content area with messages
+        
+        # content area with messages to read
         self.content_area = ctk.CTkScrollableFrame(self)
         self.content_area.pack(fill=ctk.BOTH, expand=True)
         
@@ -1472,7 +1368,6 @@ class InsideConversationGUI(ctk.CTkFrame):
                 messagebox.showinfo("Info", "added new message")        
 
 class HandleMessages:
-    # maybe the mainscreens will get an instance of this class
     def __init__(self, frame_area, controller, conversation_title, amount=5) -> None:
         self.frame_area = frame_area
         self.controller = controller
@@ -1561,14 +1456,11 @@ class MessageGUI(ctk.CTkFrame):
         self.speech_text_button = ctk.CTkButton(self.voice_frame, width=50, fg_color="white", text="", image=self.speaker_icon, command=lambda: threading.Thread(target=speak_text, args=(content,)).start())
         self.speech_text_button.pack(side=ctk.TOP, padx=5, pady=3)
         ####
-        #self.content_label = ctk.CTkLabel(self, text=content)
-        #self.content_label.pack(side=ctk.LEFT)
-        #self.content_label = ctk.CTkTextbox(self, fg_color="white", border_color="black", border_width=2, height=150, wrap="word")
+
         self.content_label = ctk.CTkTextbox(self, fg_color="#E5E4E2", height=150, wrap="word")
         self.content_label.tag_config("center", justify="center")
         self.content_label.insert("1.0", content, "center")
         self.content_label.configure(spacing1=20)
-        #self.content_label.tag_add("center", "1.0", "end")
         self.content_label.configure(state=ctk.DISABLED)
         self.content_label.pack(side=ctk.LEFT, pady=10, fill=ctk.X, expand=True)
         
@@ -1584,9 +1476,6 @@ class MessageGUI(ctk.CTkFrame):
             self.del_edit_frame.configure(fg_color="#BEDBED")
             self.voice_frame.configure(fg_color="#BEDBED")
             
-            #self.change_frame = ctk.CTkFrame(self, fg_color="#ADD8E6", border_color="black", border_width=2)
-            #self.change_frame.pack(side=ctk.BOTTOM, pady=5)
-            
             delete_image = Image.open(fp=os.path.join("assets","delete icon 1.png"))
             self.delete_icon = ctk.CTkImage(light_image=delete_image, size=(30, 30))
             self.delete_button = ctk.CTkButton(self.del_edit_frame, width=50, text="", image=self.delete_icon, command=self.delete_message)
@@ -1600,10 +1489,6 @@ class MessageGUI(ctk.CTkFrame):
             confirm_image = Image.open(fp=os.path.join("assets","confirm icon 1.png"))
             self.confirm_icon = ctk.CTkImage(light_image=confirm_image, size=(30, 30))
             self.confirm_button = ctk.CTkButton(self.del_edit_frame, width=50, text="", image=self.confirm_icon, command=self.confirm_edit)
-
-            #self.delete_button = 
-            
-            # edit and delete
             
     def delete_message(self):
         self.destroy()
@@ -1712,8 +1597,6 @@ class MessageGUI(ctk.CTkFrame):
                 self.current_vote = "downvote"
             elif data[1] == "no_vote":
                 self.current_vote = "no_vote"
-                #messagebox.showinfo("Info", "added new message")  
-
 
 class FailedToload(ctk.CTk):
     def __init__(self):
@@ -1752,16 +1635,16 @@ class FailedToload(ctk.CTk):
 
 
 if __name__ == "__main__":
-    # perhaps I should have a global: connected_status and maybe in_conversation to know where to return to after reading user's data.
     try:
+        # with open the socket so that it closes if any bug occurs.
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
             client_socket.connect(('localhost', 12345))
             user_profile = None
             handle_encryption = EncryptionHandler(client_socket)
-            #get_conversations_thread = threading.Thread(target=get_conversations)
             app = App()
             app.mainloop()
     except ConnectionRefusedError:
+        # In this case the server is not active.
         print("Connection refused")
         failed_load_app = FailedToload()
         failed_load_app.mainloop()

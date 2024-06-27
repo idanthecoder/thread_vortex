@@ -3,7 +3,7 @@ __author__ = "Idan"
 
 SIZE_HEADER_FORMAT = "000000000|"  # n digits for data size + one delimiter
 size_header_size = len(SIZE_HEADER_FORMAT)
-TCP_DEBUG = True
+TCP_DEBUG = False
 LEN_TO_PRINT = 100
 
 
@@ -20,6 +20,8 @@ def recv_by_size(sock):
 
     size_header = b''
     data_len = 0
+    
+    # extract the size of the data
     while len(size_header) < size_header_size:
         _s = sock.recv(size_header_size - len(size_header))
         if _s == b'':
@@ -27,7 +29,9 @@ def recv_by_size(sock):
             break
         size_header += _s
     data = b''
+    # if a size header was extracted
     if size_header != b'':
+        # extact the data until the full size of the size header was reached
         data_len = int(size_header[:size_header_size - 1])
         while len(data) < data_len:
             _d = sock.recv(data_len - len(data))
@@ -56,6 +60,7 @@ def send_with_size(sock, bdata):
     if type(bdata) == str:
         bdata = bdata.encode()
     len_data = len(bdata)
+    # pad the size as a header to the data
     header_data = str(len(bdata)).zfill(size_header_size - 1) + "|"
 
     bytea = bytearray(header_data, encoding='utf8') + bdata

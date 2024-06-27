@@ -43,14 +43,12 @@ Thanks for usings our servers, we hope you enjoy your time!
         
         context = ssl.create_default_context()
         
-        # send the message to the provided mail
+        # send the message to the provided mail using SMTP (Simple Mail Transfer Protocol) protocol, with ssl context (a collection of ciphers, protocol versions, trusted certificates, TLS)
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as smtp:
             smtp.login(email_sender, email_password)
             smtp.sendmail(email_sender, email_receiver, em.as_string())
         
         return confirmation_code
     except smtplib.SMTPRecipientsRefused:
+        # if the mail is in invalid format
         return None
-    
-if __name__ == "__main__":
-    send_conformation_mail("altermeinego@gmail.com")

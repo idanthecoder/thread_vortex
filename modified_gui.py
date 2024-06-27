@@ -23,10 +23,10 @@ class ModifiedCTkScrollableFrame(ctk.CTkScrollableFrame):
         
         self.func = None
         self.args = None
-        # Bind the scrollbar's scroll event to the custom function (currently it gets more conversation but may use this for more things)
-        self._scrollbar.bind("<B1-Motion>", self.on_scroll) # the left mouse button
-        self._scrollbar.bind("<MouseWheel>", self.on_scroll) # the mouse wheel (if cursor on the scrollbar)
-        self.bind("<MouseWheel>", self.on_scroll) # using the mouse whell (if cursor on the frame)
+        # Bind the scrollbar's scroll event to the custom function (currently what it does is gets more conversations, but may use this for more things)
+        self._scrollbar.bind("<B1-Motion>", self.on_scroll) # the left mouse button detected
+        self._scrollbar.bind("<MouseWheel>", self.on_scroll) # the mouse wheel detected (if cursor on the scrollbar)
+        self.bind("<MouseWheel>", self.on_scroll) # using the mouse wheel detected (if cursor on the frame)
 
     def on_scroll(self, event):
         """

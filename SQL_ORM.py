@@ -178,32 +178,6 @@ class UsernamePasswordORM(object):
                             SET password = ?, salt = ?
                             WHERE mail = ? ''', (hashed_password, salt, mail))
         self.commit()
-
-    
-    #def registeration_checks(self, username, mail):
-    #    """
-    #    Process: conduct all checks for registeration - mail and username must be unique
-    #    :parameter: username (string), mail (string)
-    #    :return: a list ([] means success, other results explain the issue)
-    #    """
-    #    
-    #    # search for the existence of the name and mail
-    #    name_in_data = (self.cursor.execute(f'''SELECT * FROM Users
-    #                               WHERE username = ? ''', (username,)).fetchall())
-    #    mail_in_data = (self.cursor.execute(f'''SELECT * FROM Users
-    #                               WHERE mail = ? ''', (mail,)).fetchall())
-    #    
-    #    # return if both mail and name are unavailable or just one of them
-    #    if name_in_data and mail_in_data:
-    #        return ["name_mail_issue"]
-    #    elif name_in_data:
-    #        return ["name_issue"]
-    #    elif mail_in_data:
-    #        return ["mail_issue"]
-    #    
-    #    # a valid regiseration
-    #    return []
-    
     
     def enter_account(self, username, password, mail):
         """
@@ -211,6 +185,9 @@ class UsernamePasswordORM(object):
         :parameter: username (string), password (string), mail (string)
         :return: data (list of tuples or [])
         """
+        
+        # login
+        
         
         salt = (self.cursor.execute(f'''SELECT salt FROM Users
                                    WHERE username = ? ''', (username,)).fetchall())
@@ -346,12 +323,14 @@ class MessagesORM(object):
         self.commit()        
 
     def delete_message(self, message_id):
+        # delete a single message of the user
         self.cursor.execute(f'''
                     DELETE FROM Messages
                     WHERE message_id = ? ''', (message_id,))
         self.commit()
     
     def delete_user_messages(self, username):
+        # delete all message of the user
         self.cursor.execute(f'''
                     DELETE FROM Messages
                     WHERE sender_username = ? ''', (username,))
@@ -370,6 +349,7 @@ class MessagesORM(object):
         if len(all_messages) == 0:
             return []
         
+        # if there are new messages, just less then the requested amount
         if len(all_messages) < amount:
             return all_messages[0:len(all_messages)]
         else:
@@ -382,6 +362,7 @@ class MessagesORM(object):
         
         new_messages = []
         for msgdata in all_messages:
+            # if the id is bigger that it's a new message
             if int(msgdata[0]) > int(last_recieved_msg_id):
                 new_messages.append(msgdata)
                 if len(new_messages) == amount:
@@ -389,52 +370,14 @@ class MessagesORM(object):
         
         # no new messages, or new messages but less then requested amount
         return new_messages
-        
-                
-                
-        
-        ## check from last to first in case of 2 messages with the same content
-        #all_messages_reversed = list(reversed(all_messages))
-        #new_index = 0
-        #for i, msgdata in enumerate(all_messages_reversed):
-        #    if msgdata[1] == last_recieved_msg_content:
-        #        # will give me the index of one after the one i'm looking at right now, but from the start not from the end
-        #        new_index = len(all_messages) - i
-        #        break
-        #
-        ## if there aren't any new messages
-        #if new_index > len(all_messages):
-        #    return [] 
-        #
-        ## if there are new messages, but not the requested amount
-        #if len(all_messages) < new_index+amount:
-        #    return all_messages[new_index: len(all_messages)]
-        ## if there are new messages and can return the requested amount
-        #else:
-        #    return all_messages[new_index: new_index+amount]
     
     def search_for(self, search_for):
+        # search for messages with the requested search subject
         search_in_data = (self.cursor.execute(f'''SELECT * FROM Messages
                                    WHERE content Like ?''', (f"%{search_for}%",)).fetchall())
         if len(search_in_data) == 0:
             return []
         return search_in_data
-
-    #def change_vote(self, message_id, vote):
-    #    # vote is either 1 or -1
-    #    self.cursor.execute(f'''
-    #                UPDATE Messages
-    #                SET votes = votes + ?
-    #                WHERE message_id = ?''', (vote, message_id))
-    #    self.commit()
-    
-    #def alter_table(self):
-    #    self.cursor.execute("ALTER TABLE Messages ADD COLUMN votes INTEGER DEFAULT 0")
-    #    self.commit()
-
-    #def dealter_table(self):
-    #    self.cursor.execute("ALTER TABLE Messages DROP COLUMN votes")
-    #    self.commit()
         
 #---------------------------------
 
@@ -522,7 +465,7 @@ class ConversationsORM(object):
             
         except sqlite3.IntegrityError as e:
             if "UNIQUE constraint failed: Conversations.title" in str(e):
-                # Handle the specific case where the mail already exists
+                # Handle the specific case where the title already exists
                 print("Error: Conversation title already used.")
                 return "title_issue"
             else:
@@ -554,6 +497,7 @@ class ConversationsORM(object):
         self.commit()
 
     def change_to_deleted(self, username):
+        # user was deleted, therefore change the username of this conversation to [DELETED]
         self.cursor.execute(f'''
                     UPDATE Conversations
                     SET creator_username = ?
@@ -567,15 +511,19 @@ class ConversationsORM(object):
         return self.cursor.execute(f'''SELECT {subject} FROM Conversations WHERE conversation_id = {conversation_id}''').fetchall()
 
     def get_last_conversations(self, amount=1):
+        # get conversations from the end of the table (newest conversations)
         all_convs = self.get_table("Conversations")
         if len(all_convs) == 0:
             return []
+        # there are but less then the amount
         if len(all_convs) < amount:
             return all_convs[-len(all_convs):]
         else:
+            # there are, in the right the amount
             return all_convs[-amount:] 
         
     def get_last_new_conversations(self, shown_titles, amount=1):
+        # get conversations from the end of the table that the user hasn't seen yet (newest non-seen)
         all_convs = self.get_table("Conversations")
         if len(all_convs) == 0:
             return []
@@ -590,26 +538,14 @@ class ConversationsORM(object):
                 if len(return_lst) == amount:
                     return return_lst
         
-        # check
         if len(return_lst) == 0:
             # no new conversations
             return []
         # in this case there are new conversations, just not the requested amount
         return return_lst
 
-    #def conversation_checks(self, title):
-    #    # search for the existence of the name and mail
-    #    title_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
-    #                               WHERE title = ? ''', (title,)).fetchall())
-    #    
-    #    # return if both mail and name are unavailable or just one of them
-    #    if title_in_data :
-    #        return ["title_exists"]
-    #    
-    #    # a valid regiseration
-    #    return []
-
     def search_for(self, search_for):
+        # search for conversation with the requested search subject
         search_in_data = (self.cursor.execute(f'''SELECT * FROM Conversations
                                    WHERE title Like ?''', (f"%{search_for}%",)).fetchall())
         if len(search_in_data) == 0:
@@ -622,6 +558,7 @@ class ConversationsORM(object):
         
         if len(data) == 0:
             return []
+        # as title is unique only the first result is needed
         return data[0]
 
 
@@ -718,18 +655,17 @@ class UserMessageVotesORM(object):
         self.commit()
     
     def already_voted(self, username, message_id):
-        # search for the existence of the name and mail
         vote_status = self.cursor.execute(f'''SELECT * FROM UsersMessagesVotes
                                    WHERE message_id = ? AND username = ? ''', (message_id, username)).fetchall()
         
-        # return if both mail and name are unavailable or just one of them
+        # check if voted on this already
         if vote_status :
             return vote_status[0]
         
-        # a valid regiseration
         return "new vote"
     
     def get_votes(self, message_id):
+        # sum all the votes and return the result
         vote_amount = self.cursor.execute(f'''SELECT SUM(vote) FROM UsersMessagesVotes
                                    WHERE message_id = ? ''', (message_id,)).fetchall()
         
@@ -843,6 +779,7 @@ class UserConversationPinsORM(object):
         return "new pin"
     
     def get_pins(self, conversation_title):
+        # sum all the pins and return the result
         pin_amount = self.cursor.execute(f'''SELECT SUM(pin) FROM UsersConversationsPins
                                    WHERE conversation_title = ? ''', (conversation_title,)).fetchall()
         
@@ -851,6 +788,7 @@ class UserConversationPinsORM(object):
         return pin_amount[0][0]
 
     def get_specific_user_pins(self, username):
+        # get all the conversations that this user pinned
         user_pins = self.cursor.execute(f'''SELECT conversation_title FROM UsersConversationsPins
                                    WHERE username = ? AND pin != 0 ''', (username,)).fetchall()
         
