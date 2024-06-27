@@ -673,6 +673,18 @@ class UserMessageVotesORM(object):
             return 0
         return vote_amount[0][0]
 
+    def delete_vote_on_message(self, message_id, username):
+        self.cursor.execute(f'''
+                    DELETE FROM UsersMessagesVotes
+                    WHERE message_id = ? AND username = ? ''', (message_id, username))
+        self.commit()
+    
+    def delete_all_votes_of_user(self, username):
+        self.cursor.execute(f'''
+                    DELETE FROM UsersMessagesVotes
+                    WHERE username = ? ''', (username,))
+        self.commit()
+
 
 class UserConversationPinsORM(object):
     """

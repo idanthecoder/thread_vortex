@@ -400,8 +400,10 @@ class TCPServer:
                 elif command == "DELMSG":
                     # delete a meesage
                     id = fields[0]
+                    username = fields[1]
                     
                     messages_db.delete_message(id)
+                    messages_votes_db.delete_vote_on_message(id, username)
                     
                     to_send = "DELMSG|success"
                 
@@ -419,6 +421,7 @@ class TCPServer:
                     users_db.delete_user(username)
                     messages_db.delete_user_messages(username)
                     conversations_db.change_to_deleted(username)
+                    messages_votes_db.delete_all_votes_of_user(username)
                     
                     to_send = "DELUSR|done"
                 

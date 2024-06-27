@@ -1493,7 +1493,7 @@ class MessageGUI(ctk.CTkFrame):
     def delete_message(self):
         self.destroy()
         
-        data = send_and_recieve(f"DELMSG|{self.id}")
+        data = send_and_recieve(f"DELMSG|{self.id}|{user_profile.username}")
 
         if data[0] == "DELMSG":
             if data[1] == "success":
